@@ -1,0 +1,47 @@
+Clock Cycle:
+------------
+-1. Read instructions and load them into Instruction Cache.
+
+
+0. Fetch instruction from Instruction Cache to Instruction Queue if there's space in the Instruction Queue.
+
+
+1. (Issue & Read Operands)
+
+   a) Before Issuing:
+      Decode Instruction.
+      Check for Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station).
+
+      Then, Issue Instruction to its Buffer/Station if all checks are correct.
+      Set the Buffer/Station to busy.
+      Update the Qi field in the Register file with the tag of the Buffer/Station that the Instruction will be added to.
+      Add to a Hash Map ==> K: Tag of the Station/Buffer, V: Cycle Number that it's issued in.
+      
+      If not a Load, Check Operand Registers in the Register File. (N.B. effective addresses are already given)
+      If the Operand Registers are free then copy the value to Vj/Vk.
+      Else copy the Station/Buffer tag responsible for this Operand from the register file to Qj/Qk.
+
+
+2. (Execute)
+
+   For each Station, if it has Vj and Vk ready, Execute.
+   For each Buffer, if memory is not busy, Execute.
+   Each instruction keeps executing according to its required number of cycles to finish.
+   If it's a Store, wait for the value to be stored to be ready before Executing.
+
+
+3. (Write Result)
+
+   Write Result by broadcasting the result to all the Stations/Buffers and Register File(s) if the instruction cycles have reached the required number of cycles to finish.
+   If more than one instruction trying to write, compare their issued time/cycle from the hashmap perform Write Result for the instruction with the lower issued time/cycle (FIFO).
+
+   After writing:
+   Remove the instruction from its Buffer/Station.
+   Unset the busy status.
+   Update all Stations that need the value by moving from Qj/Qk to Vj/Vk.
+   Update all Registers that need the value by adding the value into the contents field of the Register, and setting Qi to 0.
+   Update all Store Buffers that need the value by moving from Q to V.
+   Load Buffers don't need updating as they only have address.
+
+--------------------------------------------------------------------------------
+vars to track: clockCycleNumber, cyclesLeft (for each instruction)
