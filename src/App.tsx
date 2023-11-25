@@ -1,13 +1,11 @@
-import InputsFormComponent from "./components/inputs/Inputs";
-import InputsContextProvider from "./contexts/Inputs";
+import InputForm from "./components/input/InputForm";
+import InputContextProvider from "./contexts/InputContext";
 
 function App() {
   return (
-    <>
-      <InputsContextProvider>
-        <InputsFormComponent />
-      </InputsContextProvider>
-    </>
+    <InputContextProvider>
+      <InputForm />
+    </InputContextProvider>
   );
 }
 

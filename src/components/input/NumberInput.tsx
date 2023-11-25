@@ -1,10 +1,10 @@
 import TextField from "@mui/material/TextField";
 import { useContext } from "react";
-import { InputsContext } from "../../contexts/Inputs";
+import { InputContext } from "../../contexts/InputContext";
 import { Controller, FieldError } from "react-hook-form";
-import InputOptions from "../../interfaces/InputOptions";
+import InputOptions from "../../types/InputOptions";
 
-export type InputsComponentProps = {
+export type NumberInputProps = {
   name:
     | "FPAddLatency"
     | "FPSubtractLatency"
@@ -20,7 +20,7 @@ export type InputsComponentProps = {
   setFormStateFunction?: React.Dispatch<React.SetStateAction<any>>;
 };
 
-const InputComponent: React.FC<InputsComponentProps> = ({ name, value, label, setFormStateFunction }) => {
+const NumberInput: React.FC<NumberInputProps> = ({ name, value, label, setFormStateFunction }) => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = event.target;
     setFormStateFunction?.((prevState: InputOptions) => ({
@@ -29,8 +29,9 @@ const InputComponent: React.FC<InputsComponentProps> = ({ name, value, label, se
     }));
   };
 
-  const { formActions } = useContext(InputsContext);
+  const { formActions } = useContext(InputContext);
   console.log("Errors: " + formActions!.errors.FPAddLatency?.message);
+
   return (
     <Controller
       name={name}
@@ -52,6 +53,7 @@ const InputComponent: React.FC<InputsComponentProps> = ({ name, value, label, se
               field.onChange(event);
             }}
           />
+
           {formActions!.errors[name] && (
             <p style={{ color: "red" }}>{(formActions!.errors[name] as FieldError).message}</p>
           )}
@@ -61,4 +63,4 @@ const InputComponent: React.FC<InputsComponentProps> = ({ name, value, label, se
   );
 };
 
-export default InputComponent;
+export default NumberInput;

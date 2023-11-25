@@ -1,4 +1,4 @@
-import { BufferSizes, InstructionLatencies, ReservationStationsSizes } from ".";
+import { BufferSizes, InstructionLatencies, ReservationStationsSizes } from "../interfaces";
 
 type InputOptions = InstructionLatencies | BufferSizes | ReservationStationsSizes;
 

@@ -1,38 +1,6 @@
-import { Control, FieldErrors, UseFormHandleSubmit } from "react-hook-form";
+import InstructionLatencies from "./InstructionLatencies";
+import InputContextValues from "./InputContextValues";
+import BufferSizes from "./BufferSizes";
+import ReservationStationsSizes from "./ReservationStationSizes";
 
-interface InstructionLatencies {
-  FPAddLatency: number;
-  FPSubtractLatency: number;
-  FPMultiplyLatency: number;
-  FPDivideLatency: number;
-  IntSubtractLatency: number;
-  IntAddLatency?: 1;
-  BranchNotEqualZeroLatency?: 1;
-}
-
-interface BufferSizes {
-  LoadBufferSize: number;
-  StoreBufferSize: number;
-}
-
-interface ReservationStationsSizes {
-  AddSubtractReservationStationSize: number;
-  MultiplyDivideReservationStationSize: number;
-}
-
-interface InputsContextValues {
-  instructionLatencies: InstructionLatencies;
-  setInstructionLatencies: React.Dispatch<React.SetStateAction<InstructionLatencies>>;
-  bufferSizes: BufferSizes;
-  setBufferSizes: React.Dispatch<React.SetStateAction<BufferSizes>>;
-  reservationStationsSizes: ReservationStationsSizes;
-  setReservationStationsSizes: React.Dispatch<React.SetStateAction<ReservationStationsSizes>>;
-
-  formActions: {
-    control: Control<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
-    errors: FieldErrors<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
-    handleSubmit: UseFormHandleSubmit<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
-  } | null;
-}
-
-export type { InstructionLatencies, InputsContextValues, BufferSizes, ReservationStationsSizes };
+export type { InstructionLatencies, InputContextValues, BufferSizes, ReservationStationsSizes };
