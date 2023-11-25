@@ -1,14 +1,17 @@
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { useContext } from "react";
-import { InputsContext } from "../contexts/Inputs";
-import { BufferSizeInput, InstructionLatencyInput, ReservationStationSizeInput } from "./InputComponent";
+import { InputsContext } from "../../contexts/Inputs";
+import { BufferSizeInput, InstructionLatencyInput, ReservationStationSizeInput } from "./MainInputComponent";
 import { Button } from "@mui/material";
 
 function InputsFormComponent() {
   const context = useContext(InputsContext);
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSubmit = () => {
+    console.log("Buffer sizes" + JSON.stringify(context.bufferSizes));
+    console.log("Instruction latencies" + JSON.stringify(context.instructionLatencies));
+    console.log("Reservation Station sizes" + JSON.stringify(context.reservationStationsSizes));
+
     // main logic starts from here
   };
 
@@ -19,7 +22,7 @@ function InputsFormComponent() {
         sx={{
           "& .MuiTextField-root": { m: 1, width: "25ch" }
         }}
-        onSubmit={handleSubmit}
+        onSubmit={context.formActions?.handleSubmit(onSubmit)}
       >
         <div style={{ marginBottom: 40 }}>
           <Typography variant="h4" component="div" gutterBottom>

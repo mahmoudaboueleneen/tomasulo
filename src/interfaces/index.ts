@@ -1,3 +1,5 @@
+import { Control, FieldErrors, UseFormHandleSubmit } from "react-hook-form";
+
 interface InstructionLatencies {
   FPAddLatency: number;
   FPSubtractLatency: number;
@@ -25,6 +27,12 @@ interface InputsContextValues {
   setBufferSizes: React.Dispatch<React.SetStateAction<BufferSizes>>;
   reservationStationsSizes: ReservationStationsSizes;
   setReservationStationsSizes: React.Dispatch<React.SetStateAction<ReservationStationsSizes>>;
+
+  formActions: {
+    control: Control<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
+    errors: FieldErrors<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
+    handleSubmit: UseFormHandleSubmit<InstructionLatencies & BufferSizes & ReservationStationsSizes>;
+  } | null;
 }
 
 export type { InstructionLatencies, InputsContextValues, BufferSizes, ReservationStationsSizes };

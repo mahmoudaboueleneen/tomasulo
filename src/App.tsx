@@ -1,4 +1,4 @@
-import InputsFormComponent from "./components/Inputs";
+import InputsFormComponent from "./components/inputs/Inputs";
 import InputsContextProvider from "./contexts/Inputs";
 
 function App() {
