@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { InputContext } from "../../contexts/InputContext";
 import { Controller } from "react-hook-form";
 
-const InstructionsInput: React.FC = () => {
+const TextAreaInput: React.FC = () => {
   const context = useContext(InputContext);
 
   return (
@@ -10,11 +10,15 @@ const InstructionsInput: React.FC = () => {
       name="instructions"
       control={context.formActions!.control}
       defaultValue=""
-      render={({ field }) => (
-        <textarea placeholder="Enter instructions" onChange={(e) => context.setInstructions(e.target.value)} />
+      render={() => (
+        <textarea
+          value={context.instructions as string}
+          placeholder="Enter instructions"
+          onChange={(e) => context.setInstructions(e.target.value)}
+        />
       )}
     />
   );
 };
 
-export default InstructionsInput;
+export default TextAreaInput;

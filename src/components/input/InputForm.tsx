@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { Button } from "@mui/material";
+import { Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
@@ -7,13 +7,18 @@ import InstructionLatencyInput from "./InstructionLatencyInput";
 import BufferSizeInput from "./BufferSizeInput";
 import ReservationStationSizeInput from "./ReservationStationSizeInput";
 import { InputContext } from "../../contexts/InputContext";
-import InstructionsInput from "./InstructionsInput";
+import TextAreaInput from "./TextAreaInput";
 import FileInput from "./FileInput";
+import { parseInstructions } from "../../utils";
 
 const InputForm = () => {
   const context = useContext(InputContext);
 
-  const onSubmit = () => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    context.setInstructionsFormat(event.target.value);
+  };
+
+  const onSubmit = async () => {
     console.log("Buffer sizes" + JSON.stringify(context.bufferSizes));
     console.log("Instruction latencies" + JSON.stringify(context.instructionLatencies));
     console.log("Reservation Station sizes" + JSON.stringify(context.reservationStationsSizes));
@@ -23,19 +28,8 @@ const InputForm = () => {
     // Some submission logic here . . .
 
     // Instruction submission logic here
-    const instructions = context.instructions;
-    const file = context.file;
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const instructionsFromFile = (e?.target?.result as string).split("\n");
-        // Handle the instructions from the file . . .
-      };
-      reader.readAsText(file);
-    } else {
-      // Handle the instructions from the text area . . .
-    }
+    const instructions = await parseInstructions(context.instructions);
+    console.log("Instructions: " + JSON.stringify(instructions));
   };
 
   return (
@@ -51,11 +45,20 @@ const InputForm = () => {
           <Typography variant="h4" component="div" gutterBottom>
             Instructions
           </Typography>
-
           <div>
-            <InstructionsInput />
-
-            <FileInput />
+            <FormControl component="fieldset">
+              <FormLabel component="legend">Choose an option</FormLabel>
+              <RadioGroup aria-label="options" value={context.instructionsFormat} onChange={handleChange}>
+                <FormControlLabel value="string" control={<Radio />} label="Write instructions" />
+                <FormControlLabel
+                  value="file-upload"
+                  control={<Radio />}
+                  label="Upload text file containing instructions"
+                />
+              </RadioGroup>
+            </FormControl>
+            <div>{context.instructionsFormat === "string" ? <TextAreaInput /> : <FileInput />}</div>
+            {context.instructionsError && <p style={{ color: "red" }}>{context.instructionsError}</p>}
           </div>
         </div>
 

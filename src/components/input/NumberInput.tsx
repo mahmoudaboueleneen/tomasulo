@@ -30,7 +30,6 @@ const NumberInput: React.FC<NumberInputProps> = ({ name, value, label, setFormSt
   };
 
   const { formActions } = useContext(InputContext);
-  console.log("Errors: " + formActions!.errors.FPAddLatency?.message);
 
   return (
     <Controller
