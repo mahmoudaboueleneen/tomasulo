@@ -16,7 +16,7 @@ Clock Cycle:
       Then, 
        - Issue Instruction to its Buffer/Station,
        - Set the Buffer/Station to busy,
-       - Update the Qi field in the Register file for the Instruction's Destination Register with the 
+       - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the 
          tag of the Buffer/Station that the Instruction has been added to,
        - Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
       
