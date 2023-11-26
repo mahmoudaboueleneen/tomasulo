@@ -7,100 +7,100 @@ import Instructions from "../types/Instructions";
 import { inputFormSchema } from "../schemas";
 
 export const InputContext = createContext<InputContextValues>({
-  instructionLatencies: {
-    FPAddLatency: 0,
-    FPSubtractLatency: 0,
-    FPMultiplyLatency: 0,
-    FPDivideLatency: 0,
-    IntSubtractLatency: 0
-  },
-  setInstructionLatencies: () => {},
+    instructionLatencies: {
+        FPAddLatency: 0,
+        FPSubtractLatency: 0,
+        FPMultiplyLatency: 0,
+        FPDivideLatency: 0,
+        IntSubtractLatency: 0
+    },
+    setInstructionLatencies: () => {},
 
-  bufferSizes: {
-    LoadBufferSize: 0,
-    StoreBufferSize: 0
-  },
-  setBufferSizes: () => {},
+    bufferSizes: {
+        LoadBufferSize: 0,
+        StoreBufferSize: 0
+    },
+    setBufferSizes: () => {},
 
-  reservationStationsSizes: {
-    AddSubtractReservationStationSize: 0,
-    MultiplyDivideReservationStationSize: 0
-  },
-  setReservationStationsSizes: () => {},
+    reservationStationsSizes: {
+        AddSubtractReservationStationSize: 0,
+        MultiplyDivideReservationStationSize: 0
+    },
+    setReservationStationsSizes: () => {},
 
-  instructions: "",
-  setInstructions: () => {},
+    instructions: "",
+    setInstructions: () => {},
 
-  formActions: null,
+    formActions: null,
 
-  instructionsFormat: "file-upload",
-  setInstructionsFormat: () => {},
-  instructionsError: null,
-  setInstructionsError: () => {}
+    instructionsFormat: "file-upload",
+    setInstructionsFormat: () => {},
+    instructionsError: null,
+    setInstructionsError: () => {}
 });
 
 type InputsContextProviderProps = {
-  children: React.ReactNode;
+    children: React.ReactNode;
 };
 
 const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }) => {
-  const [instructionLatencies, setInstructionLatencies] = useState<InstructionLatencies>({
-    FPAddLatency: 0,
-    FPSubtractLatency: 0,
-    FPMultiplyLatency: 0,
-    FPDivideLatency: 0,
-    IntSubtractLatency: 0
-  });
+    const [instructionLatencies, setInstructionLatencies] = useState<InstructionLatencies>({
+        FPAddLatency: 0,
+        FPSubtractLatency: 0,
+        FPMultiplyLatency: 0,
+        FPDivideLatency: 0,
+        IntSubtractLatency: 0
+    });
 
-  const [bufferSizes, setBufferSizes] = useState({
-    LoadBufferSize: 0,
-    StoreBufferSize: 0
-  });
+    const [bufferSizes, setBufferSizes] = useState({
+        LoadBufferSize: 0,
+        StoreBufferSize: 0
+    });
 
-  const [reservationStationsSizes, setReservationStationsSizes] = useState({
-    AddSubtractReservationStationSize: 0,
-    MultiplyDivideReservationStationSize: 0
-  });
+    const [reservationStationsSizes, setReservationStationsSizes] = useState({
+        AddSubtractReservationStationSize: 0,
+        MultiplyDivideReservationStationSize: 0
+    });
 
-  const [instructions, setInstructions] = useState<Instructions | null>();
+    const [instructions, setInstructions] = useState<Instructions | null>();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    resolver: zodResolver(inputFormSchema)
-  });
+    const {
+        control,
+        handleSubmit,
+        formState: { errors }
+    } = useForm({
+        resolver: zodResolver(inputFormSchema)
+    });
 
-  const [instructionsFormat, setInstructionsFormat] = useState("file-upload");
-  const [instructionsError, setInstructionsError] = useState<string | null>(null);
+    const [instructionsFormat, setInstructionsFormat] = useState("file-upload");
+    const [instructionsError, setInstructionsError] = useState<string | null>(null);
 
-  const contextValues = {
-    instructionLatencies,
-    setInstructionLatencies,
+    const contextValues = {
+        instructionLatencies,
+        setInstructionLatencies,
 
-    bufferSizes,
-    setBufferSizes,
+        bufferSizes,
+        setBufferSizes,
 
-    reservationStationsSizes,
-    setReservationStationsSizes,
+        reservationStationsSizes,
+        setReservationStationsSizes,
 
-    instructions,
-    setInstructions,
+        instructions,
+        setInstructions,
 
-    formActions: {
-      control,
-      handleSubmit,
-      errors
-    },
+        formActions: {
+            control,
+            handleSubmit,
+            errors
+        },
 
-    instructionsFormat,
-    setInstructionsFormat,
-    instructionsError,
-    setInstructionsError
-  };
+        instructionsFormat,
+        setInstructionsFormat,
+        instructionsError,
+        setInstructionsError
+    };
 
-  return <InputContext.Provider value={contextValues}>{children}</InputContext.Provider>;
+    return <InputContext.Provider value={contextValues}>{children}</InputContext.Provider>;
 };
 
 export default InputContextProvider;

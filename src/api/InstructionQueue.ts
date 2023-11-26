@@ -12,6 +12,10 @@ class InstructionQueue {
     dequeue(): string | null {
         return this.instructions.shift() || null;
     }
+
+    peek(): string | null {
+        return this.instructions[0] || null;
+    }
 }
 
 export default InstructionQueue;

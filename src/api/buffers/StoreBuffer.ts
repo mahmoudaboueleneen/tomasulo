@@ -11,6 +11,12 @@ class StoreBuffer extends Buffer {
         this.v = null;
         this.q = null;
     }
+    setV(v: V) {
+        this.v = v;
+    }
+    setQ(q: Q) {
+        this.q = q;
+    }
 }
 
 export default StoreBuffer;

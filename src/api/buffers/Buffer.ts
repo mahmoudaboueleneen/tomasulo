@@ -8,6 +8,11 @@ abstract class Buffer {
         this.busy = 0;
         this.address = null;
     }
+
+    loadInstructionIntoBuffer(address: number) {
+        this.busy = 1;
+        this.address = address;
+    }
 }
 
 export default Buffer;
