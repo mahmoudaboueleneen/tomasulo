@@ -3,21 +3,22 @@ Clock Cycle:
 -1. Read instructions and load them into Instruction Cache.
 
 
-0. Fetch instruction from Instruction Cache to Instruction Queue if there's space in the Instruction Queue.
+0. Fetch instruction from Instruction Cache into Instruction Queue.
 
 
 1. (Issue & Read Operands)
 
    a) Before Issuing:
       Decode Instruction.
-      Check for Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station).
+      If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
+      && In case of Load there is no Store manipulating the same address in the Buffers
 
       Then, Issue Instruction to its Buffer/Station if all checks are correct.
       Set the Buffer/Station to busy.
       Update the Qi field in the Register file with the tag of the Buffer/Station that the Instruction will be added to.
       Add to a Hash Map ==> K: Tag of the Station/Buffer, V: Cycle Number that it's issued in.
       
-      If not a Load, Check Operand Registers in the Register File. (N.B. effective addresses are already given)
+   b) If not a Load, Check Operand Registers in the Register File. (N.B. effective addresses are already given)
       If the Operand Registers are free then copy the value to Vj/Vk.
       Else copy the Station/Buffer tag responsible for this Operand from the register file to Qj/Qk.
 
