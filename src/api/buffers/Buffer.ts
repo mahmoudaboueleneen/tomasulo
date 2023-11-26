@@ -1,5 +1,5 @@
 abstract class Buffer {
-    tag: string | null;
+    tag: Tag;
     busy: 0 | 1;
     address: number | null;
 

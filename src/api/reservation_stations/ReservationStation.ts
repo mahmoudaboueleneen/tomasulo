@@ -1,13 +1,15 @@
+import V from "../../types/V";
+import Q from "../../types/Q";
 import DecodedInstruction from "../DecodedInstruction";
 
 abstract class ReservationStation {
-    tag: string | null;
+    tag: Tag;
     busy: 0 | 1;
     op: InstructionOperation | null;
-    vj: number | null;
-    vk: number | null;
-    qj: string | 0 | null;
-    qk: string | 0 | null;
+    vj: V;
+    vk: V;
+    qj: Q;
+    qk: Q;
     decodedInstructionObject: DecodedInstruction | null;
 
     constructor(tag: string) {
