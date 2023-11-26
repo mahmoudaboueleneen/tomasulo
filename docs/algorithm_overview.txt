@@ -13,10 +13,12 @@ Clock Cycle:
       If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
       && In case of Load there is no Store manipulating the same address in the Buffers
 
-      Then, Issue Instruction to its Buffer/Station,
-      Set the Buffer/Station to busy,
-      Update the Qi field in the Register file for the Instruction's Destination Register with the tag of the Buffer/Station that the Instruction has been added to,
-      Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
+      Then, 
+       - Issue Instruction to its Buffer/Station,
+       - Set the Buffer/Station to busy,
+       - Update the Qi field in the Register file for the Instruction's Destination Register with the 
+         tag of the Buffer/Station that the Instruction has been added to,
+       - Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
       
    b) If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers)
       Check Operand Registers in the Register File:
