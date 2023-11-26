@@ -17,7 +17,7 @@ class RegisterFile {
         for (let i = 0; i < 32; i++) {
             this.registers.set(`F${i}`, {
                 content: 0,
-                qi: undefined
+                qi: 0
             });
         }
     }
@@ -26,7 +26,7 @@ class RegisterFile {
         for (let i = 0; i < 32; i++) {
             this.registers.set(`R${i}`, {
                 content: 0,
-                qi: undefined
+                qi: 0
             });
         }
     }

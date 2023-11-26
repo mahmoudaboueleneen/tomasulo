@@ -1,5 +1,5 @@
 import InstructionType from "../enums/InstructionType";
-import { RType, IType, LoadType, BNEZType, StoreType } from "../interfaces/InstructionOperationType";
+import { RType, IType, LoadType, StoreType, BNEZType } from "../interfaces/instructionOperationType";
 import removeLastSymbol from "./removeLastSymbol";
 
 // TODO: add support for all instructions (ensef)
