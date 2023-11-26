@@ -28,8 +28,8 @@ Clock Cycle:
 
 2. (Execute)
 
-   For each Station, if it has Qj and Qk both equal 0, Execute.
-   For each Buffer, if memory is not busy, Execute.
+   For each Station, if it has Qj and Qk both equal 0, Execute (Decrement Cycles Left).
+   For each Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
    Each instruction keeps executing according to its required number of cycles to finish.
    If it's a Store, wait for the value to be stored to be ready before Executing.
 
@@ -42,6 +42,7 @@ Clock Cycle:
    After writing:
    Remove the instruction from its Buffer/Station.
    Unset the busy status.
+   If it's a load or store, set memory to not busy.
    Update all Stations that need the value by moving from Qj/Qk to Vj/Vk.
    Update all Registers that need the value by adding the value into the contents field of the Register, and setting Qi to 0.
    Update all Store Buffers that need the value by moving from Q to V.
