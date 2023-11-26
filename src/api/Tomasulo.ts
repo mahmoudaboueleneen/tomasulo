@@ -43,8 +43,8 @@ class Tomasulo {
     }
 
     public runTomasuloAlgorithm() {
-        while (true) {
-            /* there are still instructions to execute */
+        let temp = true;
+        while (temp) {
             this.write();
             this.issue();
             this.execute();
