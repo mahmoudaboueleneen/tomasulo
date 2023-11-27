@@ -45,7 +45,7 @@ abstract class ReservationStation implements Executable {
     }
 
     canExecute() {
-        return !this.isFinished && this.busy === 1 && this.qj === 0 && this.qk === 0;
+        return !this.isFinished() && this.busy === 1 && this.qj === 0 && this.qk === 0;
     }
 
     isFinished() {

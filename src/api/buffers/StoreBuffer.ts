@@ -11,15 +11,23 @@ class StoreBuffer extends Buffer {
         this.v = null;
         this.q = null;
     }
+
     setV(v: V) {
         this.v = v;
     }
+
     setQ(q: Q) {
         this.q = q;
     }
 
     canExecute(): boolean {
-        return this.busy === 1 && this.q === 0;
+        return super.canExecute() && this.q === 0;
+    }
+
+    clear() {
+        super.clear();
+        this.v = null;
+        this.q = null;
     }
 }
 

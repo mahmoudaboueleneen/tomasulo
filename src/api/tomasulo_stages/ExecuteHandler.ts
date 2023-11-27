@@ -1,19 +1,21 @@
-import { WriteData } from "../../interfaces/writeData";
-import V from "../../types/V";
+import CommonDataBus from "../CommonDataBus";
 import LoadBuffer from "../buffers/LoadBuffer";
 import StoreBuffer from "../buffers/StoreBuffer";
 import DataCache from "../caches/DataCache";
 import AddSubReservationStation from "../reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "../reservation_stations/MulDivReservationStation";
 import ReservationStation from "../reservation_stations/ReservationStation";
+import V from "../../types/V";
 
 class ExecuteHandler {
-    private addSubReserbationStations: AddSubReservationStation[];
+    private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
     private dataCache: DataCache;
+    private commonDataBus: CommonDataBus;
     private tagTimeMap: Map<Tag, number>;
+
     private mayExecuteStoreBuffer: StoreBuffer | null;
     private mayExecuteLoadBuffer: LoadBuffer | null;
 
@@ -23,52 +25,54 @@ class ExecuteHandler {
         loadBuffers: LoadBuffer[],
         storeBuffers: StoreBuffer[],
         dataCache: DataCache,
+        commonDataBus: CommonDataBus,
         tagTimeMap: Map<Tag, number>
     ) {
-        this.mayExecuteStoreBuffer = null;
-        this.mayExecuteLoadBuffer = null;
-        this.addSubReserbationStations = addSubReservationStations;
+        this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
         this.loadBuffers = loadBuffers;
         this.storeBuffers = storeBuffers;
         this.dataCache = dataCache;
+        this.commonDataBus = commonDataBus;
         this.tagTimeMap = tagTimeMap;
+
+        this.mayExecuteStoreBuffer = null;
+        this.mayExecuteLoadBuffer = null;
     }
 
     public handleExecuting() {
-        this.decrementCyclesFromResevationStations(this.addSubReserbationStations);
+        this.decrementCyclesLeftForRunningStations();
 
-        this.decrementCyclesFromResevationStations(this.mulDivReservationStations);
-
-        this.chooseStoreBuffertoExecute();
-
-        this.chooseLoadBuffertoExecute();
-
+        this.chooseStoreBufferToExecute();
+        this.chooseLoadBufferToExecute();
         this.executeLoadOrStore();
     }
 
-    private decrementCyclesFromResevationStations(reservationsStations: ReservationStation[]) {
-        reservationsStations.forEach((station) => {
-            if (station.busy === 1 && station.canExecute()) {
-                station.decrementCyclesLeft();
-                if (station.isFinished()) {
-                    this.executeArithmetic(station);
-                }
+    private decrementCyclesLeftForRunningStations() {
+        this.addSubReservationStations.forEach((station) => {
+            if (station.canExecute()) {
+                station.decrementCyclesLeft(); // simulate execution
+            }
+        });
+
+        this.mulDivReservationStations.forEach((station) => {
+            if (station.canExecute()) {
+                station.decrementCyclesLeft(); // simulate execution
             }
         });
     }
 
-    private chooseStoreBuffertoExecute() {
+    private chooseStoreBufferToExecute() {
         this.storeBuffers.forEach((buffer) => {
-            if (buffer.canExecute()) {
+            if (!this.dataCache.isBusyWithTag(buffer.tag) && buffer.canExecute()) {
                 this.mayExecuteStoreBuffer = buffer;
             }
         });
     }
 
-    private chooseLoadBuffertoExecute() {
+    private chooseLoadBufferToExecute() {
         this.loadBuffers.forEach((buffer) => {
-            if (buffer.canExecute()) {
+            if (!this.dataCache.isBusyWithTag(buffer.tag) && buffer.canExecute()) {
                 this.mayExecuteLoadBuffer = buffer;
             }
         });
@@ -101,26 +105,27 @@ class ExecuteHandler {
         this.mayExecuteLoadBuffer = null;
     }
 
-    private executeStore(storeBuffer: StoreBuffer): WriteData {
-        const { address, v, tag } = storeBuffer;
+    private executeStore(storeBuffer: StoreBuffer) {
+        const { address, v } = storeBuffer;
         this.dataCache.write(address!, v!);
-
-        return { value: v, tag };
     }
-    private executeLoad(loadBuffer: LoadBuffer): WriteData {
+
+    private executeLoad(loadBuffer: LoadBuffer) {
         const { address, tag } = loadBuffer!;
-        const v = this.dataCache.read(address!);
-        return { value: v, tag };
+        const readValue = this.dataCache.read(address!);
+        this.commonDataBus.write(readValue, tag!);
     }
 
     private executeArithmetic(station: ReservationStation) {
-        const { vj, vk } = station;
-        const value = this.UseALU(vj, vk);
-        const sendToWrite = { value, tag: station.tag! };
+        const { op, vj, vk } = station;
+        const computedValue = this.UseALU(op as InstructionOperation, vj, vk);
+        this.commonDataBus.write(computedValue, station.tag!);
     }
+
     //TODO: We should have a ALU class and use instead of this function
-    private UseALU(op1: V, op2: V): V {
-        return op1! + op2!;
+    private UseALU(operation: InstructionOperation, vj: V, vk: V): number {
+        // TODO: Handle ALU operations here.
+        return 0;
     }
 }
 

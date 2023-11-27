@@ -7,6 +7,7 @@ import LoadBuffer from "./buffers/LoadBuffer";
 import StoreBuffer from "./buffers/StoreBuffer";
 import RegisterFile from "./RegisterFile";
 import IssueHandler from "./tomasulo_stages/IssueHandler";
+import CommonDataBus from "./CommonDataBus";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -17,6 +18,7 @@ class Tomasulo {
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
     private registerFile: RegisterFile;
+    private commonDataBus: CommonDataBus;
     private currentClockCycle: number;
     private tagTimeMap: Map<Tag, number>;
 
@@ -45,8 +47,8 @@ class Tomasulo {
             .map((_, index) => new StoreBuffer(`S${index + 1}`));
 
         this.registerFile = new RegisterFile();
+        this.commonDataBus = new CommonDataBus();
         this.currentClockCycle = 0;
-
         this.tagTimeMap = new Map();
     }
 
@@ -62,6 +64,13 @@ class Tomasulo {
         }
     }
 
+    private fetch() {
+        const fetchedInstruction = this.instructionCache.fetch();
+        if (fetchedInstruction) {
+            this.instructionQueue.enqueue(fetchedInstruction);
+        }
+    }
+
     private issue() {
         new IssueHandler(
             this.instructionQueue,
@@ -73,13 +82,6 @@ class Tomasulo {
             this.addSubReservationStations,
             this.mulDivReservationStations
         ).handleIssuing();
-    }
-
-    private fetch() {
-        const fetchedInstruction = this.instructionCache.fetch();
-        if (fetchedInstruction) {
-            this.instructionQueue.enqueue(fetchedInstruction);
-        }
     }
 
     private execute() {

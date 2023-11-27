@@ -1,6 +1,6 @@
 import IssuedInstructionDestination from "../../enums/IssuedInstructionDestination";
 import { StoreType, LoadType, RType } from "../../interfaces/instructionOperationType";
-import InstructionOperationType from "../../types/InstructionOperationType";
+import InstructionOperationCategory from "../../types/InstructionOperationCategory";
 import decodeInstruction from "../../utils/decode";
 import getIssuedInstructionDestination from "../../utils/getIssuedInstructionDestination";
 import InstructionQueue from "../InstructionQueue";
@@ -13,7 +13,7 @@ import MulDivReservationStation from "../reservation_stations/MulDivReservationS
 class IssueHandler {
     private instructionQueue: InstructionQueue;
     private issuedInstructionDestination: IssuedInstructionDestination | null;
-    private instructionDecoded: InstructionOperationType | null;
+    private instructionDecoded: InstructionOperationCategory | null;
     private currentClockCycle: number;
     private tagTimeMap: Map<Tag, number>;
     private storeBuffers: StoreBuffer[];
@@ -170,7 +170,7 @@ class IssueHandler {
             freeStation.qk = this.registerFile.readQi(addSubInstruction.Src2);
         }
     }
-    private isRType(instructionDecoded: InstructionOperationType) {
+    private isRType(instructionDecoded: InstructionOperationCategory) {
         return (instructionDecoded as RType).Dest !== undefined;
     }
 }
