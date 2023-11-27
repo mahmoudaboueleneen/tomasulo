@@ -22,12 +22,17 @@ class DataCache {
         return this.runningBufferTag;
     }
 
+    // TODO: Use this
     setRunningInstructionTag(tag: Tag): void {
         this.runningBufferTag = tag;
     }
 
-    isBusyWithTag(tag: Tag): boolean {
-        return this.runningBufferTag !== null && this.runningBufferTag === tag;
+    isBusy(): boolean {
+        return this.runningBufferTag !== null;
+    }
+
+    isFilledWithTag(tag: Tag): boolean {
+        return this.runningBufferTag === tag;
     }
 
     clearRunningInstructionTag(): void {

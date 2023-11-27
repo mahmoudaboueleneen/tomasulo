@@ -16,9 +16,6 @@ class ExecuteHandler {
     private commonDataBus: CommonDataBus;
     private tagTimeMap: Map<Tag, number>;
 
-    private mayExecuteStoreBuffer: StoreBuffer | null;
-    private mayExecuteLoadBuffer: LoadBuffer | null;
-
     constructor(
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[],
@@ -35,74 +32,59 @@ class ExecuteHandler {
         this.dataCache = dataCache;
         this.commonDataBus = commonDataBus;
         this.tagTimeMap = tagTimeMap;
-
-        this.mayExecuteStoreBuffer = null;
-        this.mayExecuteLoadBuffer = null;
     }
 
     public handleExecuting() {
         this.decrementCyclesLeftForRunningStations();
-
-        this.chooseStoreBufferToExecute();
-        this.chooseLoadBufferToExecute();
-        this.executeLoadOrStore();
+        this.decrementCyclesLeftForRunningBuffers();
     }
 
     private decrementCyclesLeftForRunningStations() {
         this.addSubReservationStations.forEach((station) => {
             if (station.canExecute()) {
-                station.decrementCyclesLeft(); // simulate execution
+                station.decrementCyclesLeft();
+
+                if (station.isFinished()) {
+                    this.executeArithmetic(station);
+                }
             }
         });
 
         this.mulDivReservationStations.forEach((station) => {
             if (station.canExecute()) {
-                station.decrementCyclesLeft(); // simulate execution
+                station.decrementCyclesLeft();
+
+                if (station.isFinished()) {
+                    this.executeArithmetic(station);
+                }
             }
         });
     }
 
-    private chooseStoreBufferToExecute() {
-        this.storeBuffers.forEach((buffer) => {
-            if (!this.dataCache.isBusyWithTag(buffer.tag) && buffer.canExecute()) {
-                this.mayExecuteStoreBuffer = buffer;
-            }
-        });
-    }
-
-    private chooseLoadBufferToExecute() {
+    private decrementCyclesLeftForRunningBuffers() {
         this.loadBuffers.forEach((buffer) => {
-            if (!this.dataCache.isBusyWithTag(buffer.tag) && buffer.canExecute()) {
-                this.mayExecuteLoadBuffer = buffer;
+            if (buffer.canExecute() && !this.dataCache.isBusy()) {
+                this.dataCache.setRunningInstructionTag(buffer.tag);
+            } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+                buffer.decrementCyclesLeft();
+
+                if (buffer.isFinished()) {
+                    this.executeLoad(buffer);
+                }
             }
         });
-    }
 
-    private executeLoadOrStore() {
-        if (this.mayExecuteStoreBuffer && this.mayExecuteLoadBuffer) {
-            const storeTag = this.mayExecuteStoreBuffer.tag;
-            const storeTime = this.tagTimeMap.get(storeTag)!;
+        this.storeBuffers.forEach((buffer) => {
+            if (buffer.canExecute() && !this.dataCache.isBusy()) {
+                this.dataCache.setRunningInstructionTag(buffer.tag);
+            } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+                buffer.decrementCyclesLeft();
 
-            const loadTag = this.mayExecuteLoadBuffer.tag;
-            const loadTime = this.tagTimeMap.get(loadTag)!;
-
-            if (loadTime < storeTime) {
-                const sendToWrite = this.executeLoad(this.mayExecuteLoadBuffer);
-                //TODO: send value and tag to the write stage ???
-            } else {
-                const sendToWrite = this.executeStore(this.mayExecuteStoreBuffer);
-                //TODO: send value and tag to the write stage ???
+                if (buffer.isFinished()) {
+                    this.executeStore(buffer);
+                }
             }
-        } else if (this.mayExecuteStoreBuffer) {
-            const sendToWrite = this.executeStore(this.mayExecuteStoreBuffer);
-            //TODO: send value and tag to the write stage ???
-        } else if (this.mayExecuteLoadBuffer) {
-            const sendToWrite = this.executeLoad(this.mayExecuteLoadBuffer);
-            //TODO: send value and tag to the write stage ???
-        }
-
-        this.mayExecuteStoreBuffer = null;
-        this.mayExecuteLoadBuffer = null;
+        });
     }
 
     private executeStore(storeBuffer: StoreBuffer) {
@@ -116,13 +98,15 @@ class ExecuteHandler {
         this.commonDataBus.write(readValue, tag!);
     }
 
+    // TODO: Find out which Adder to go to
     private executeArithmetic(station: ReservationStation) {
-        const { op, vj, vk } = station;
+        const { tag, op, vj, vk } = station;
+
         const computedValue = this.UseALU(op as InstructionOperation, vj, vk);
         this.commonDataBus.write(computedValue, station.tag!);
     }
 
-    //TODO: We should have a ALU class and use instead of this function
+    // TODO: We should have a ALU class and use instead of this function
     private UseALU(operation: InstructionOperation, vj: V, vk: V): number {
         // TODO: Handle ALU operations here.
         return 0;

@@ -33,18 +33,24 @@ Clock Cycle:
    Each instruction keeps executing according to its required number of cycles to finish.
    If it's a Store, wait for the value to be stored to be ready before Executing.
 
+   If instruction is finished, compute the result and write to the bus.
 
 3. (Write Result)
 
-   Write Result by broadcasting the result to all the Stations/Buffers and Register File(s) if the instruction cycles have reached the required number of cycles to finish.
-   If more than one instruction trying to write, compare their issued time/cycle from the hashmap perform Write Result for the instruction with the lower issued time/cycle (FIFO).
+   Take result from bus to all the Stations/Buffers and Register File(s) 
+     if the instruction cycles have reached the required number of cycles to finish.
+
+   If more than one instruction trying to write, 
+     compare their issued time/cycle from the hashmap perform Write Result 
+     for the instruction with the lower issued time/cycle (FIFO).
 
    After writing:
    Remove the instruction from its Buffer/Station.
    Unset the busy status.
    If it's a load or store, set memory to not busy.
    Update all Stations that need the value by moving from Qj/Qk to Vj/Vk.
-   Update all Registers that need the value by adding the value into the contents field of the Register, and setting Qi to 0.
+   Update all Registers that need the value by adding the value into the 
+     contents field of the Register, and setting Qi to 0.
    Update all Store Buffers that need the value by moving from Q to V.
    Load Buffers don't need updating as they only have address.
 
