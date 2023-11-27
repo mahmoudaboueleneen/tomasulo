@@ -2,7 +2,7 @@ import V from "../../types/V";
 import Q from "../../types/Q";
 import DecodedInstruction from "../DecodedInstruction";
 
-abstract class ReservationStation {
+abstract class ReservationStation implements Executable {
     tag: Tag;
     busy: 0 | 1;
     op: InstructionOperation | null;
@@ -45,7 +45,7 @@ abstract class ReservationStation {
     }
 
     canExecute() {
-        return this.busy === 1 && this.qj === 0 && this.qk === 0;
+        return !this.isFinished && this.busy === 1 && this.qj === 0 && this.qk === 0;
     }
 
     isFinished() {

@@ -17,6 +17,10 @@ class StoreBuffer extends Buffer {
     setQ(q: Q) {
         this.q = q;
     }
+
+    canExecute(): boolean {
+        return this.busy === 1 && this.q === 0;
+    }
 }
 
 export default StoreBuffer;

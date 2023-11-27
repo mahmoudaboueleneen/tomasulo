@@ -1,4 +1,4 @@
-abstract class Buffer {
+abstract class Buffer implements Executable {
     tag: Tag;
     busy: 0 | 1;
     address: number | null;
@@ -13,6 +13,8 @@ abstract class Buffer {
         this.busy = 1;
         this.address = address;
     }
+
+    abstract canExecute(): void;
 }
 
 export default Buffer;
