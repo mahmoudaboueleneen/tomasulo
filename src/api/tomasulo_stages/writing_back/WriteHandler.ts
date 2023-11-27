@@ -1,10 +1,10 @@
-import CommonDataBus from "../misc/CommonDataBus";
-import RegisterFile from "../misc/RegisterFile";
-import LoadBuffer from "../buffers/LoadBuffer";
-import StoreBuffer from "../buffers/StoreBuffer";
-import DataCache from "../caches/DataCache";
-import AddSubReservationStation from "../reservation_stations/AddSubReservationStation";
-import MulDivReservationStation from "../reservation_stations/MulDivReservationStation";
+import CommonDataBus from "../../misc/CommonDataBus";
+import RegisterFile from "../../misc/RegisterFile";
+import LoadBuffer from "../../buffers/LoadBuffer";
+import StoreBuffer from "../../buffers/StoreBuffer";
+import DataCache from "../../caches/DataCache";
+import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
+import MulDivReservationStation from "../../reservation_stations/MulDivReservationStation";
 
 class WriteHandler {
     private addSubReservationStations: AddSubReservationStation[];

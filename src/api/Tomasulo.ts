@@ -6,10 +6,12 @@ import MulDivReservationStation from "./reservation_stations/MulDivReservationSt
 import LoadBuffer from "./buffers/LoadBuffer";
 import StoreBuffer from "./buffers/StoreBuffer";
 import RegisterFile from "./misc/RegisterFile";
-import IssueHandler from "./tomasulo_stages/IssueHandler";
+import IssueHandler from "./tomasulo_stages/issuing/IssueHandler";
 import CommonDataBus from "./misc/CommonDataBus";
-import ExecuteHandler from "./tomasulo_stages/ExecuteHandler";
-import WriteHandler from "./tomasulo_stages/WriteHandler";
+import ExecuteHandler from "./tomasulo_stages/execution/ExecuteHandler";
+import WriteHandler from "./tomasulo_stages/writing_back/WriteHandler";
+import FPAdder from "./arithmetic_units/FPAdder";
+import FPMultiplier from "./arithmetic_units/FPMultiplier";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -29,6 +31,9 @@ class Tomasulo {
     private tagTimeMap: Map<Tag, number>;
     private finishedTagValuePairs: TagValuePair[];
 
+    private FPAdders: FPAdder[];
+    private FPMultipliers: FPMultiplier[];
+
     constructor(
         instructions: string[],
         addSubReservationStationCount: number,
@@ -36,25 +41,32 @@ class Tomasulo {
         loadBufferCount: number,
         storeBufferCount: number
     ) {
-        this.instructionCache = new InstructionCache(instructions);
+        this.registerFile = new RegisterFile();
+        this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
         this.dataCache = new DataCache();
         this.instructionQueue = new InstructionQueue();
+
         this.addSubReservationStations = Array(addSubReservationStationCount)
             .fill(null)
             .map((_, index) => new AddSubReservationStation(`A${index + 1}`));
+        this.FPAdders = Array(addSubReservationStationCount);
+
         this.mulDivReservationStations = Array(mulDivReservationStationCount)
             .fill(null)
             .map((_, index) => new MulDivReservationStation(`M${index + 1}`));
+        this.FPMultipliers = Array(mulDivReservationStationCount);
+
         this.loadBuffers = Array(loadBufferCount)
             .fill(null)
             .map((_, index) => new LoadBuffer(`L${index + 1}`));
         this.storeBuffers = Array(storeBufferCount)
             .fill(null)
             .map((_, index) => new StoreBuffer(`S${index + 1}`));
-        this.registerFile = new RegisterFile();
+
         this.commonDataBus = new CommonDataBus();
         this.currentClockCycle = 0;
         this.tagTimeMap = new Map();
+
         this.finishedTagValuePairs = [];
     }
 
@@ -80,6 +92,7 @@ class Tomasulo {
 
     private issue() {
         new IssueHandler(
+            this.instructionCache,
             this.instructionQueue,
             this.currentClockCycle,
             this.tagTimeMap,
@@ -95,11 +108,14 @@ class Tomasulo {
         new ExecuteHandler(
             this.addSubReservationStations,
             this.mulDivReservationStations,
+            this.FPAdders,
+            this.FPMultipliers,
             this.loadBuffers,
             this.storeBuffers,
             this.dataCache,
             this.tagTimeMap,
-            this.finishedTagValuePairs
+            this.finishedTagValuePairs,
+            this.registerFile.getPCRegister()
         ).handleExecuting();
     }
 

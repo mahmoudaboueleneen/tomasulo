@@ -1,6 +1,8 @@
 import V from "../../types/V";
 import Q from "../../types/Q";
 import DecodedInstruction from "../misc/DecodedInstruction";
+import InstructionOperation from "../../types/InstructionOperation";
+import Address from "../../types/Address";
 
 abstract class ReservationStation implements Executable {
     tag: Tag;
@@ -10,6 +12,7 @@ abstract class ReservationStation implements Executable {
     vk: V;
     qj: Q;
     qk: Q;
+    A: Address;
     decodedInstructionObject: DecodedInstruction | null;
 
     constructor(tag: string) {
@@ -20,6 +23,7 @@ abstract class ReservationStation implements Executable {
         this.vk = null;
         this.qj = null;
         this.qk = null;
+        this.A = null;
         this.decodedInstructionObject = null;
     }
 

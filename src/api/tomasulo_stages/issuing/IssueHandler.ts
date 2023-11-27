@@ -1,16 +1,26 @@
-import IssuedInstructionDestination from "../../types/enums/IssuedInstructionDestination";
-import { StoreType, LoadType, RType } from "../../interfaces/instructionOperationType";
-import InstructionOperationCategory from "../../types/InstructionOperationCategory";
-import decodeInstruction from "../../utils/decode";
-import getIssuedInstructionDestination from "../../utils/getIssuedInstructionDestination";
-import InstructionQueue from "../misc/InstructionQueue";
-import RegisterFile from "../misc/RegisterFile";
-import LoadBuffer from "../buffers/LoadBuffer";
-import StoreBuffer from "../buffers/StoreBuffer";
-import AddSubReservationStation from "../reservation_stations/AddSubReservationStation";
-import MulDivReservationStation from "../reservation_stations/MulDivReservationStation";
+import IssuedInstructionDestination from "../../../types/enums/IssuedInstructionDestination";
+import {
+    StoreType,
+    LoadType,
+    RType,
+    BranchType,
+    IType
+} from "../../../interfaces/decoded_instruction_operation_categories";
+import InstructionOperationCategory from "../../../types/InstructionOperationCategory";
+import getIssuedInstructionDestination from "../../../utils/getIssuedInstructionDestination";
+import InstructionQueue from "../../misc/InstructionQueue";
+import RegisterFile from "../../misc/RegisterFile";
+import LoadBuffer from "../../buffers/LoadBuffer";
+import StoreBuffer from "../../buffers/StoreBuffer";
+import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
+import MulDivReservationStation from "../../reservation_stations/MulDivReservationStation";
+import InstructionOperation from "../../../types/InstructionOperation";
+import DecodeHandler from "./DecodeHandler";
+import InstructionCache from "../../caches/InstructionCache";
 
 class IssueHandler {
+    private decodeHandler: DecodeHandler;
+
     private instructionQueue: InstructionQueue;
     private issuedInstructionDestination: IssuedInstructionDestination | null;
     private instructionDecoded: InstructionOperationCategory | null;
@@ -23,6 +33,7 @@ class IssueHandler {
     private mulDivReservationStations: MulDivReservationStation[];
 
     constructor(
+        instructionCache: InstructionCache,
         instructionQueue: InstructionQueue,
         currentClockCycle: number,
         tagTimeMap: Map<Tag, number>,
@@ -32,6 +43,7 @@ class IssueHandler {
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[]
     ) {
+        this.decodeHandler = new DecodeHandler(instructionCache);
         this.instructionQueue = instructionQueue;
         this.instructionDecoded = null;
         this.issuedInstructionDestination = null;
@@ -53,7 +65,7 @@ class IssueHandler {
 
         this.instructionQueue.dequeue();
 
-        this.instructionDecoded = decodeInstruction(peekInstruction);
+        this.instructionDecoded = this.decodeHandler.decodeInstruction(peekInstruction);
         this.issuedInstructionDestination = getIssuedInstructionDestination(
             this.instructionDecoded.Op as InstructionOperation
         );
@@ -91,11 +103,7 @@ class IssueHandler {
         const storeInstruction = this.instructionDecoded as StoreType;
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
 
-        if (this.registerFile.readQi(storeInstruction.Src) === 0) {
-            freeBuffer.v = this.registerFile.readContent(storeInstruction.Src);
-        } else {
-            freeBuffer.q = this.registerFile.readQi(storeInstruction.Src);
-        }
+        this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
     }
 
     private handleLoadInstruction() {
@@ -137,16 +145,8 @@ class IssueHandler {
 
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 
-        if (this.registerFile.readQi(mulDivInstruction.Src1) === 0) {
-            freeStation.vj = this.registerFile.readContent(mulDivInstruction.Src1);
-        } else {
-            freeStation.qj = this.registerFile.readQi(mulDivInstruction.Src1);
-        }
-        if (this.registerFile.readQi(mulDivInstruction.Src2) === 0) {
-            freeStation.vk = this.registerFile.readContent(mulDivInstruction.Src2);
-        } else {
-            freeStation.qk = this.registerFile.readQi(mulDivInstruction.Src2);
-        }
+        this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", mulDivInstruction.Src1);
+        this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", mulDivInstruction.Src2);
     }
 
     private handleAddSubInstruction() {
@@ -158,29 +158,49 @@ class IssueHandler {
         }
 
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
+        this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 
-        if (!this.isRType(this.instructionDecoded!)) {
+        if (this.isBNEZInstruction(this.instructionDecoded!)) {
+            const branchInstruction = this.instructionDecoded as BranchType;
+            this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", branchInstruction.Operand);
+            freeStation.A = branchInstruction.BranchAddress;
             return;
         }
 
-        const addSubInstruction = this.instructionDecoded as RType;
+        const addSubInstruction = this.instructionDecoded as RType | IType;
         this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
 
-        this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
-
-        if (this.registerFile.readQi(addSubInstruction.Src1) === 0) {
-            freeStation.vj = this.registerFile.readContent(addSubInstruction.Src1);
-        } else {
-            freeStation.qj = this.registerFile.readQi(addSubInstruction.Src1);
+        if (this.isIType(addSubInstruction)) {
+            const ImmediateInstruction = addSubInstruction as IType;
+            this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", ImmediateInstruction.Src);
+            freeStation.vk = ImmediateInstruction.Immediate;
+            return;
         }
-        if (this.registerFile.readQi(addSubInstruction.Src2) === 0) {
-            freeStation.vk = this.registerFile.readContent(addSubInstruction.Src2);
+
+        const RInstruction = addSubInstruction as RType;
+        this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", RInstruction.Src1);
+        this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", RInstruction.Src2);
+    }
+
+    private handleSettingVOrQInFreeSpot(
+        freeSpot: any,
+        VField: "vj" | "vk" | "v",
+        QField: "qj" | "qk" | "q",
+        operand: string
+    ) {
+        if (this.registerFile.readQi(operand) === 0) {
+            freeSpot[VField] = this.registerFile.readContent(operand);
         } else {
-            freeStation.qk = this.registerFile.readQi(addSubInstruction.Src2);
+            freeSpot[QField] = this.registerFile.readQi(operand);
         }
     }
-    private isRType(instructionDecoded: InstructionOperationCategory) {
-        return (instructionDecoded as RType).Dest !== undefined;
+
+    private isBNEZInstruction(instructionDecoded: InstructionOperationCategory) {
+        return (instructionDecoded as BranchType).Op === "BNEZ";
+    }
+
+    private isIType(instructionDecoded: InstructionOperationCategory) {
+        return (instructionDecoded as IType).Immediate !== undefined;
     }
 }
 

@@ -12,6 +12,13 @@ class RegisterFile {
     private initializeRegisters() {
         this.loadIntegerValueRegisters();
         this.loadFloatingPointRegisters();
+        this.loadSpecialRegisters();
+    }
+
+    private loadSpecialRegisters() {
+        this.registers.set("PC", {
+            content: 0
+        });
     }
 
     private loadFloatingPointRegisters() {
@@ -46,6 +53,14 @@ class RegisterFile {
 
     writeTag(register: string, tag: Tag): void {
         this.registers.get(register)!.qi = tag;
+    }
+
+    public getPCRegister(): RegisterInfo {
+        return this.registers.get("PC")!;
+    }
+
+    public setPCRegisterValue(value: number): void {
+        this.registers.get("PC")!.content = value;
     }
 
     public updateRegisters(tag: Tag, value: number): void {

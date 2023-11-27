@@ -1,16 +1,17 @@
 import IssuedInstructionDestination from "../types/enums/IssuedInstructionDestination";
 import {
-    AddSubInstructions,
-    MulDivInstructions,
+    AddSubStationInstructions,
+    MulDivStationInstructions,
     LoadBufferInstructions,
     StoreBufferInstructions
 } from "../constants/SupportedInstructionsPerStationOrBuffer";
+import InstructionOperation from "../types/InstructionOperation";
 
 function getIssuedInstructionDestination(instructionOperation: InstructionOperation): IssuedInstructionDestination {
-    if (AddSubInstructions.has(instructionOperation)) {
+    if (AddSubStationInstructions.has(instructionOperation)) {
         return IssuedInstructionDestination.ADD_SUB;
     }
-    if (MulDivInstructions.has(instructionOperation)) {
+    if (MulDivStationInstructions.has(instructionOperation)) {
         return IssuedInstructionDestination.MUL_DIV;
     }
     if (LoadBufferInstructions.has(instructionOperation)) {

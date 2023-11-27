@@ -1,14 +1,19 @@
-import LoadBuffer from "../buffers/LoadBuffer";
-import StoreBuffer from "../buffers/StoreBuffer";
-import DataCache from "../caches/DataCache";
-import AddSubReservationStation from "../reservation_stations/AddSubReservationStation";
-import MulDivReservationStation from "../reservation_stations/MulDivReservationStation";
-import ReservationStation from "../reservation_stations/ReservationStation";
-import V from "../../types/V";
+import LoadBuffer from "../../buffers/LoadBuffer";
+import StoreBuffer from "../../buffers/StoreBuffer";
+import DataCache from "../../caches/DataCache";
+import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
+import MulDivReservationStation from "../../reservation_stations/MulDivReservationStation";
+import ReservationStation from "../../reservation_stations/ReservationStation";
+import FPMultiplier from "../../arithmetic_units/FPMultiplier";
+import FPAdder from "../../arithmetic_units/FPAdder";
+import AluElement from "../../arithmetic_units/AluElement";
+import RegisterInfo from "../../../interfaces/RegisterInfo";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
+    private FPAdders: FPAdder[];
+    private FPMultipliers: FPMultiplier[];
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
     private dataCache: DataCache;
@@ -16,31 +21,39 @@ class ExecuteHandler {
     private finishedTagValuePairs: TagValuePair[];
     private candidateLoadBuffer: LoadBuffer | null;
     private candidateStoreBuffer: StoreBuffer | null;
+    private PCRegister: RegisterInfo;
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[],
+        FPAdders: FPAdder[],
+        FPMultipliers: FPMultiplier[],
         loadBuffers: LoadBuffer[],
         storeBuffers: StoreBuffer[],
         dataCache: DataCache,
         tagTimeMap: Map<Tag, number>,
-        finishedTagValuePairs: TagValuePair[]
+        finishedTagValuePairs: TagValuePair[],
+        PCRegister: RegisterInfo
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
+        this.FPAdders = FPAdders;
+        this.FPMultipliers = FPMultipliers;
         this.loadBuffers = loadBuffers;
         this.storeBuffers = storeBuffers;
         this.dataCache = dataCache;
         this.tagTimeMap = tagTimeMap;
         this.finishedTagValuePairs = finishedTagValuePairs;
+        this.PCRegister = PCRegister;
+
         this.candidateLoadBuffer = null;
         this.candidateStoreBuffer = null;
     }
 
     public handleExecuting() {
-        this.decrementCyclesLeftForRunningStations(this.addSubReservationStations);
-        this.decrementCyclesLeftForRunningStations(this.mulDivReservationStations);
-        this.decrementCyclesLeftForRunningBuffers();
+        this.handleRunningInstructionsInStations(this.addSubReservationStations, this.FPAdders);
+        this.handleRunningInstructionsInStations(this.mulDivReservationStations, this.FPMultipliers);
+        this.handleRunningInstructionsInBuffers();
         this.assignEarlierBufferToDataCache();
         this.clearCandidates();
     }
@@ -50,20 +63,28 @@ class ExecuteHandler {
         this.candidateStoreBuffer = null;
     }
 
-    private decrementCyclesLeftForRunningStations(stations: ReservationStation[]) {
-        stations.forEach((station) => {
+    private handleRunningInstructionsInStations(stations: ReservationStation[], AluElements: AluElement[]) {
+        stations.forEach((station, index) => {
+            const stationAluElement = AluElements[index];
             if (station.canExecute()) {
                 station.decrementCyclesLeft();
-
+                stationAluElement.setBusy(1);
                 if (station.isFinished()) {
-                    const computedValue = this.executeMulDivArithmetic(station);
-                    this.addToFinishedTagValuePairs(station.tag, computedValue);
+                    const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
+                    if (station.op === "BNEZ") {
+                        if (computedValue !== 0) {
+                            // this.PCRegister.value = station.v;
+                        }
+                    } else {
+                        this.addToFinishedTagValuePairs(station.tag, computedValue);
+                    }
+                    stationAluElement.setBusy(0);
                 }
             }
         });
     }
 
-    private decrementCyclesLeftForRunningBuffers() {
+    private handleRunningInstructionsInBuffers() {
         for (const buffer of this.loadBuffers) {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
                 this.candidateLoadBuffer = buffer;
@@ -113,7 +134,6 @@ class ExecuteHandler {
         }
     }
 
-    // TODO: Review this method and its helper and maybe implement a more efficient solution
     private addToFinishedTagValuePairs(newTag: Tag, newValue: number) {
         const newPair: TagValuePair = { tag: newTag, value: newValue };
 
@@ -142,21 +162,6 @@ class ExecuteHandler {
     private executeLoad(loadBuffer: LoadBuffer) {
         const { address } = loadBuffer!;
         return this.dataCache.read(address!);
-    }
-
-    private executeAddSubArithmetic(station: ReservationStation) {
-        const { op, vj, vk } = station;
-        return this.UseALU(op!, vj, vk); // TODO: Replace with a method from FPAdder class
-    }
-
-    private executeMulDivArithmetic(station: ReservationStation) {
-        const { op, vj, vk } = station;
-        return this.UseALU(op!, vj, vk); // TODO: Replace with a method from FPMultiplier class
-    }
-
-    // TODO: Remove this method once we have the methods for FPAdder and FPMultiplier classes
-    private UseALU(operation: InstructionOperation, vj: V, vk: V): number {
-        return 0;
     }
 }
 
