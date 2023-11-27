@@ -38,23 +38,20 @@ class ExecuteHandler {
     }
 
     public handleExecuting() {
-        this.decrementCyclesLeftForRunningStations();
+        this.decrementCyclesLeftForRunningStations(this.addSubReservationStations);
+        this.decrementCyclesLeftForRunningStations(this.mulDivReservationStations);
         this.decrementCyclesLeftForRunningBuffers();
+        this.assignEarlierBufferToDataCache();
+        this.clearCandidates();
     }
 
-    private decrementCyclesLeftForRunningStations() {
-        this.addSubReservationStations.forEach((station) => {
-            if (station.canExecute()) {
-                station.decrementCyclesLeft();
+    private clearCandidates() {
+        this.candidateLoadBuffer = null;
+        this.candidateStoreBuffer = null;
+    }
 
-                if (station.isFinished()) {
-                    const computedValue = this.executeAddSubArithmetic(station);
-                    this.addToFinishedTagValuePairs(station.tag, computedValue);
-                }
-            }
-        });
-
-        this.mulDivReservationStations.forEach((station) => {
+    private decrementCyclesLeftForRunningStations(stations: ReservationStation[]) {
+        stations.forEach((station) => {
             if (station.canExecute()) {
                 station.decrementCyclesLeft();
 
@@ -67,8 +64,6 @@ class ExecuteHandler {
     }
 
     private decrementCyclesLeftForRunningBuffers() {
-        // We assume loads are favored over stores if both are ready to execute at the same time.
-
         for (const buffer of this.loadBuffers) {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
                 this.candidateLoadBuffer = buffer;
@@ -98,10 +93,6 @@ class ExecuteHandler {
                 }
             }
         }
-
-        this.assignEarlierBufferToDataCache();
-        this.candidateLoadBuffer = null;
-        this.candidateStoreBuffer = null;
     }
 
     private assignEarlierBufferToDataCache() {
