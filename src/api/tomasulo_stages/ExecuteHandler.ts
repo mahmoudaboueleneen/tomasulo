@@ -14,6 +14,8 @@ class ExecuteHandler {
     private dataCache: DataCache;
     private tagTimeMap: Map<Tag, number>;
     private finishedTagValuePairs: TagValuePair[];
+    private candidateLoadBuffer: LoadBuffer | null;
+    private candidateStoreBuffer: StoreBuffer | null;
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -31,6 +33,8 @@ class ExecuteHandler {
         this.dataCache = dataCache;
         this.tagTimeMap = tagTimeMap;
         this.finishedTagValuePairs = finishedTagValuePairs;
+        this.candidateLoadBuffer = null;
+        this.candidateStoreBuffer = null;
     }
 
     public handleExecuting() {
@@ -65,10 +69,13 @@ class ExecuteHandler {
     private decrementCyclesLeftForRunningBuffers() {
         // We assume loads are favored over stores if both are ready to execute at the same time.
 
-        this.loadBuffers.forEach((buffer) => {
+        for (const buffer of this.loadBuffers) {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
-                this.dataCache.setRunningBufferTag(buffer.tag);
-            } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+                this.candidateLoadBuffer = buffer;
+                break;
+            }
+
+            if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
@@ -76,19 +83,43 @@ class ExecuteHandler {
                     this.addToFinishedTagValuePairs(buffer.tag, readValue);
                 }
             }
-        });
+        }
 
-        this.storeBuffers.forEach((buffer) => {
+        for (const buffer of this.storeBuffers) {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
-                this.dataCache.setRunningBufferTag(buffer.tag);
-            } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+                this.candidateStoreBuffer = buffer;
+                break;
+            }
+            if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
                     this.executeStore(buffer);
                 }
             }
-        });
+        }
+
+        this.assignEarlierBufferToDataCache();
+        this.candidateLoadBuffer = null;
+        this.candidateStoreBuffer = null;
+    }
+
+    private assignEarlierBufferToDataCache() {
+        const loadTag = this.candidateLoadBuffer?.tag;
+
+        const storeTag = this.candidateStoreBuffer?.tag;
+
+        if (this.candidateLoadBuffer && this.candidateStoreBuffer) {
+            if (this.isFirstTagLaterThanSecondTag(loadTag!, storeTag!)) {
+                this.dataCache.setRunningBufferTag(storeTag!);
+            } else {
+                this.dataCache.setRunningBufferTag(loadTag!);
+            }
+        } else if (this.candidateStoreBuffer) {
+            this.dataCache.setRunningBufferTag(storeTag!);
+        } else if (this.candidateLoadBuffer) {
+            this.dataCache.setRunningBufferTag(loadTag!);
+        }
     }
 
     // TODO: Review this method and its helper and maybe implement a more efficient solution
@@ -96,20 +127,20 @@ class ExecuteHandler {
         const newPair: TagValuePair = { tag: newTag, value: newValue };
 
         const pairsIssuedBeforeOrAtSameTime = this.finishedTagValuePairs.filter(
-            (pair) => !this.isExistingTagIssuedAfterNewTag(pair.tag, newTag)
+            (pair) => !this.isFirstTagLaterThanSecondTag(pair.tag, newTag)
         );
 
         const pairsIssuedAfter = this.finishedTagValuePairs.filter((pair) =>
-            this.isExistingTagIssuedAfterNewTag(pair.tag, newTag)
+            this.isFirstTagLaterThanSecondTag(pair.tag, newTag)
         );
 
         this.finishedTagValuePairs = pairsIssuedBeforeOrAtSameTime.concat(newPair).concat(pairsIssuedAfter);
     }
 
-    private isExistingTagIssuedAfterNewTag(existingTag: Tag, newTag: Tag) {
-        const existingTagTime = this.tagTimeMap.get(existingTag)!;
-        const newTagTime = this.tagTimeMap.get(newTag)!;
-        return existingTagTime > newTagTime;
+    private isFirstTagLaterThanSecondTag(firstTag: Tag, secondTag: Tag) {
+        const firstTagTime = this.tagTimeMap.get(firstTag)!;
+        const secondTagTime = this.tagTimeMap.get(secondTag)!;
+        return firstTagTime > secondTagTime;
     }
 
     private executeStore(storeBuffer: StoreBuffer) {
