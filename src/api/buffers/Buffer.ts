@@ -1,4 +1,4 @@
-import DecodedInstruction from "../DecodedInstruction";
+import DecodedInstruction from "../misc/DecodedInstruction";
 
 abstract class Buffer implements Executable {
     tag: Tag;

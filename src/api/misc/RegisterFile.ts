@@ -1,5 +1,5 @@
-import RegisterInfo from "../interfaces/RegisterInfo";
-import Q from "../types/Q";
+import RegisterInfo from "../../interfaces/RegisterInfo";
+import Q from "../../types/Q";
 
 class RegisterFile {
     private registers: Map<string, RegisterInfo>;
@@ -8,6 +8,7 @@ class RegisterFile {
         this.registers = new Map<string, RegisterInfo>();
         this.initializeRegisters();
     }
+
     private initializeRegisters() {
         this.loadIntegerValueRegisters();
         this.loadFloatingPointRegisters();
@@ -34,6 +35,7 @@ class RegisterFile {
     readContent(register: string): number {
         return this.registers.get(register)!.content;
     }
+
     readQi(register: string): Q {
         return this.registers.get(register)!.qi!;
     }
@@ -41,8 +43,18 @@ class RegisterFile {
     writeContent(register: string, content: number): void {
         this.registers.get(register)!.content = content;
     }
+
     writeTag(register: string, tag: Tag): void {
         this.registers.get(register)!.qi = tag;
+    }
+
+    public updateRegisters(tag: Tag, value: number): void {
+        this.registers.forEach((registerInfo, _register) => {
+            if (registerInfo.qi === tag) {
+                registerInfo.qi = 0;
+                registerInfo.content = value;
+            }
+        });
     }
 }
 

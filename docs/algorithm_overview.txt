@@ -46,11 +46,11 @@ Clock Cycle:
    If Finished Instructions Array is empty, 
       Return.
 
-   Dequeue an instruction {tag, value} from the Finished Instructions Array
+   Remove an instruction {tag, value} from the Finished Instructions Array
    And Write that instruction's result to the Bus.
 
-   Find that instruction's station/buffer using the tag, and clear it, unset the busy status,
-   and for buffers, unset the memory busy status.
+   Find the station/buffer that has the same tag as that on the bus and clear it and
+   unset the station/buffer busy status and for load/store unset the memory busy status as well.
 
    For each Station
       If the Station has Qj equals the tag published on the bus
@@ -66,7 +66,7 @@ Clock Cycle:
          Set V to the value from the bus.
 
    For each Register in the RegisterFile
-      If the Register's Qi equals the tab published on the bus
+      If the Register's Qi equals the tag published on the bus
          Set Qi to 0.
          Set content to the value from the bus.
 

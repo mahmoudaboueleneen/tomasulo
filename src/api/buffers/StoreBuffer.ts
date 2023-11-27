@@ -20,14 +20,21 @@ class StoreBuffer extends Buffer {
         this.q = q;
     }
 
-    canExecute(): boolean {
-        return super.canExecute() && this.q === 0;
+    public canExecute(): boolean {
+        return super.canExecute() && this.q === 0 && this.v !== null;
     }
 
-    clear() {
+    public clear() {
         super.clear();
         this.v = null;
         this.q = null;
+    }
+
+    public update(tag: Tag, value: number) {
+        if (this.q === tag) {
+            this.q = 0;
+            this.v = value;
+        }
     }
 }
 

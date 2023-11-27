@@ -3,8 +3,8 @@ import { StoreType, LoadType, RType } from "../../interfaces/instructionOperatio
 import InstructionOperationCategory from "../../types/InstructionOperationCategory";
 import decodeInstruction from "../../utils/decode";
 import getIssuedInstructionDestination from "../../utils/getIssuedInstructionDestination";
-import InstructionQueue from "../InstructionQueue";
-import RegisterFile from "../RegisterFile";
+import InstructionQueue from "../misc/InstructionQueue";
+import RegisterFile from "../misc/RegisterFile";
 import LoadBuffer from "../buffers/LoadBuffer";
 import StoreBuffer from "../buffers/StoreBuffer";
 import AddSubReservationStation from "../reservation_stations/AddSubReservationStation";

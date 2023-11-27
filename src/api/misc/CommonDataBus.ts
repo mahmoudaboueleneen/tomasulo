@@ -1,21 +1,21 @@
 class CommonDataBus {
-    private value: number;
     private tag: Tag;
+    private value: number;
 
     constructor() {
-        this.value = 0;
         this.tag = null;
+        this.value = 0;
     }
 
-    write(value: number, tag: Tag) {
-        this.value = value;
+    write(tag: Tag, value: number) {
         this.tag = tag;
+        this.value = value;
     }
 
     read() {
         return {
-            value: this.value,
-            tag: this.tag
+            tag: this.tag,
+            value: this.value
         };
     }
 }

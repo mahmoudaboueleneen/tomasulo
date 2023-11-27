@@ -22,14 +22,14 @@ class DecodedInstruction {
         this.cyclesLeft = cyclesLeft;
     }
 
-    isFinished() {
-        return this.cyclesLeft === 0;
-    }
-
     decrementCyclesLeft() {
         if (this.cyclesLeft > 0) {
             this.cyclesLeft--;
         }
+    }
+
+    isFinished() {
+        return this.cyclesLeft === 0;
     }
 }
 

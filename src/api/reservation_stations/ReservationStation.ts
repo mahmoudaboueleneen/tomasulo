@@ -1,6 +1,6 @@
 import V from "../../types/V";
 import Q from "../../types/Q";
-import DecodedInstruction from "../DecodedInstruction";
+import DecodedInstruction from "../misc/DecodedInstruction";
 
 abstract class ReservationStation implements Executable {
     tag: Tag;
@@ -23,48 +23,43 @@ abstract class ReservationStation implements Executable {
         this.decodedInstructionObject = null;
     }
 
-    loadInstructionIntoStation(op: InstructionOperation) {
+    public loadInstructionIntoStation(op: InstructionOperation) {
         this.busy = 1;
         this.op = op;
     }
 
-    setQj(qj: string) {
-        this.qj = qj;
-    }
-
-    setQk(qk: string) {
-        this.qk = qk;
-    }
-
-    setVj(vj: number) {
-        this.vj = vj;
-    }
-
-    setVk(vk: number) {
-        this.vk = vk;
-    }
-
-    canExecute() {
-        return !this.isFinished() && this.busy === 1 && this.qj === 0 && this.qk === 0;
-    }
-
-    isFinished() {
-        return this.decodedInstructionObject !== null && this.decodedInstructionObject.isFinished();
-    }
-
-    decrementCyclesLeft() {
+    public decrementCyclesLeft() {
         if (this.decodedInstructionObject !== null) {
             this.decodedInstructionObject.decrementCyclesLeft();
         }
     }
 
-    clear() {
+    public canExecute() {
+        return !this.isFinished() && this.busy === 1 && this.qj === 0 && this.qk === 0;
+    }
+
+    public isFinished() {
+        return this.decodedInstructionObject !== null && this.decodedInstructionObject.isFinished();
+    }
+
+    public clear() {
         this.busy = 0;
         this.op = null;
         this.vj = null;
         this.vk = null;
         this.qj = null;
         this.qk = null;
+    }
+
+    public update(tag: Tag, value: number) {
+        if (this.qj === tag) {
+            this.qj = 0;
+            this.vj = value;
+        }
+        if (this.qk === tag) {
+            this.qk = 0;
+            this.vk = value;
+        }
     }
 }
 

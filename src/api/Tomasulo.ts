@@ -1,13 +1,13 @@
 import InstructionCache from "./caches/InstructionCache";
 import DataCache from "./caches/DataCache";
-import InstructionQueue from "./InstructionQueue";
+import InstructionQueue from "./misc/InstructionQueue";
 import AddSubReservationStation from "./reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "./reservation_stations/MulDivReservationStation";
 import LoadBuffer from "./buffers/LoadBuffer";
 import StoreBuffer from "./buffers/StoreBuffer";
-import RegisterFile from "./RegisterFile";
+import RegisterFile from "./misc/RegisterFile";
 import IssueHandler from "./tomasulo_stages/IssueHandler";
-import CommonDataBus from "./CommonDataBus";
+import CommonDataBus from "./misc/CommonDataBus";
 import ExecuteHandler from "./tomasulo_stages/ExecuteHandler";
 import WriteHandler from "./tomasulo_stages/WriteHandler";
 

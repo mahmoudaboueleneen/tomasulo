@@ -34,7 +34,7 @@ class DataCache {
         return this.runningBufferTag === tag;
     }
 
-    clearRunningInstructionTag(): void {
+    clearRunningBufferTag(): void {
         this.runningBufferTag = null;
     }
 }
