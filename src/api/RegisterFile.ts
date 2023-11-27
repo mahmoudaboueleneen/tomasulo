@@ -1,4 +1,4 @@
-import RegisterInfo from "../interfaces/Register";
+import RegisterInfo from "../interfaces/RegisterInfo";
 import Q from "../types/Q";
 
 class RegisterFile {

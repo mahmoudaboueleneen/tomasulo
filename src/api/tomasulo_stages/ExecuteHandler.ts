@@ -1,4 +1,3 @@
-import CommonDataBus from "../CommonDataBus";
 import LoadBuffer from "../buffers/LoadBuffer";
 import StoreBuffer from "../buffers/StoreBuffer";
 import DataCache from "../caches/DataCache";
@@ -13,8 +12,8 @@ class ExecuteHandler {
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
     private dataCache: DataCache;
-    private commonDataBus: CommonDataBus;
     private tagTimeMap: Map<Tag, number>;
+    private finishedTagValuePairs: TagValuePair[];
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -22,16 +21,16 @@ class ExecuteHandler {
         loadBuffers: LoadBuffer[],
         storeBuffers: StoreBuffer[],
         dataCache: DataCache,
-        commonDataBus: CommonDataBus,
-        tagTimeMap: Map<Tag, number>
+        tagTimeMap: Map<Tag, number>,
+        finishedTagValuePairs: TagValuePair[]
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
         this.loadBuffers = loadBuffers;
         this.storeBuffers = storeBuffers;
         this.dataCache = dataCache;
-        this.commonDataBus = commonDataBus;
         this.tagTimeMap = tagTimeMap;
+        this.finishedTagValuePairs = finishedTagValuePairs;
     }
 
     public handleExecuting() {
@@ -45,7 +44,8 @@ class ExecuteHandler {
                 station.decrementCyclesLeft();
 
                 if (station.isFinished()) {
-                    this.executeArithmetic(station);
+                    const computedValue = this.executeAddSubArithmetic(station);
+                    this.addToFinishedTagValuePairs(station.tag, computedValue);
                 }
             }
         });
@@ -55,28 +55,32 @@ class ExecuteHandler {
                 station.decrementCyclesLeft();
 
                 if (station.isFinished()) {
-                    this.executeArithmetic(station);
+                    const computedValue = this.executeMulDivArithmetic(station);
+                    this.addToFinishedTagValuePairs(station.tag, computedValue);
                 }
             }
         });
     }
 
     private decrementCyclesLeftForRunningBuffers() {
+        // We assume loads are favored over stores if both are ready to execute at the same time.
+
         this.loadBuffers.forEach((buffer) => {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
-                this.dataCache.setRunningInstructionTag(buffer.tag);
+                this.dataCache.setRunningBufferTag(buffer.tag);
             } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
-                    this.executeLoad(buffer);
+                    const readValue = this.executeLoad(buffer);
+                    this.addToFinishedTagValuePairs(buffer.tag, readValue);
                 }
             }
         });
 
         this.storeBuffers.forEach((buffer) => {
             if (buffer.canExecute() && !this.dataCache.isBusy()) {
-                this.dataCache.setRunningInstructionTag(buffer.tag);
+                this.dataCache.setRunningBufferTag(buffer.tag);
             } else if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
@@ -87,28 +91,48 @@ class ExecuteHandler {
         });
     }
 
+    private addToFinishedTagValuePairs(newTag: Tag, newValue: number) {
+        const newPair: TagValuePair = { tag: newTag, value: newValue };
+
+        const pairsIssuedBeforeOrAtSameTime = this.finishedTagValuePairs.filter(
+            (pair) => !this.isExistingTagIssuedAfterNewTag(pair.tag, newTag)
+        );
+
+        const pairsIssuedAfter = this.finishedTagValuePairs.filter((pair) =>
+            this.isExistingTagIssuedAfterNewTag(pair.tag, newTag)
+        );
+
+        this.finishedTagValuePairs = pairsIssuedBeforeOrAtSameTime.concat(newPair).concat(pairsIssuedAfter);
+    }
+
+    private isExistingTagIssuedAfterNewTag(existingTag: Tag, newTag: Tag) {
+        const existingTagTime = this.tagTimeMap.get(existingTag)!;
+        const newTagTime = this.tagTimeMap.get(newTag)!;
+        return existingTagTime > newTagTime;
+    }
+
     private executeStore(storeBuffer: StoreBuffer) {
         const { address, v } = storeBuffer;
         this.dataCache.write(address!, v!);
     }
 
     private executeLoad(loadBuffer: LoadBuffer) {
-        const { address, tag } = loadBuffer!;
-        const readValue = this.dataCache.read(address!);
-        this.commonDataBus.write(readValue, tag!);
+        const { address } = loadBuffer!;
+        return this.dataCache.read(address!);
     }
 
-    // TODO: Find out which Adder to go to
-    private executeArithmetic(station: ReservationStation) {
-        const { tag, op, vj, vk } = station;
-
-        const computedValue = this.UseALU(op as InstructionOperation, vj, vk);
-        this.commonDataBus.write(computedValue, station.tag!);
+    private executeAddSubArithmetic(station: ReservationStation) {
+        const { op, vj, vk } = station;
+        return this.UseALU(op!, vj, vk); // TODO: Replace with a method from FPAdder class
     }
 
-    // TODO: We should have a ALU class and use instead of this function
+    private executeMulDivArithmetic(station: ReservationStation) {
+        const { op, vj, vk } = station;
+        return this.UseALU(op!, vj, vk); // TODO: Replace with a method from FPMultiplier class
+    }
+
+    // TODO: Remove this method once we have the methods for FPAdder and FPMultiplier classes
     private UseALU(operation: InstructionOperation, vj: V, vk: V): number {
-        // TODO: Handle ALU operations here.
         return 0;
     }
 }

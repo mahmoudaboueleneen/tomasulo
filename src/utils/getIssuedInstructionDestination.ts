@@ -1,4 +1,4 @@
-import IssuedInstructionDestination from "../enums/IssuedInstructionDestination";
+import IssuedInstructionDestination from "../types/enums/IssuedInstructionDestination";
 import {
     AddSubInstructions,
     MulDivInstructions,

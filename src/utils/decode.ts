@@ -1,4 +1,4 @@
-import InstructionType from "../enums/InstructionType";
+import InstructionType from "../types/enums/InstructionType";
 import { RType, IType, LoadType, StoreType, BNEZType } from "../interfaces/instructionOperationType";
 import removeLastSymbol from "./removeLastSymbol";
 

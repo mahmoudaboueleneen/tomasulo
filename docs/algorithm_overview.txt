@@ -33,8 +33,13 @@ Clock Cycle:
    Each instruction keeps executing according to its required number of cycles to finish.
    If it's a Store, wait for the value to be stored to be ready before Executing.
 
-   If instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions.
-   This array should be sorted based on the clock cycle number that the instruction was issued in.
+   We will use an array of finishedInstructions which we will add an Object {tag, value} of the finished instruction to,
+   to later in the next stage be used to select one instruction from (based on FIFO) to write to the bus.
+   Thus, this array will be sorted based on the clock cycle number that the instruction was issued in.
+
+   So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions
+   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus.
+
 
 3. (Write Result)
 

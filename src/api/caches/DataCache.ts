@@ -18,12 +18,11 @@ class DataCache {
         this.data.set(address, value);
     }
 
-    getRunningInstructionTag(): Tag {
+    getRunningBufferTag(): Tag {
         return this.runningBufferTag;
     }
 
-    // TODO: Use this
-    setRunningInstructionTag(tag: Tag): void {
+    setRunningBufferTag(tag: Tag): void {
         this.runningBufferTag = tag;
     }
 

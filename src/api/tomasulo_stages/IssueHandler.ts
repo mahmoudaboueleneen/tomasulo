@@ -1,4 +1,4 @@
-import IssuedInstructionDestination from "../../enums/IssuedInstructionDestination";
+import IssuedInstructionDestination from "../../types/enums/IssuedInstructionDestination";
 import { StoreType, LoadType, RType } from "../../interfaces/instructionOperationType";
 import InstructionOperationCategory from "../../types/InstructionOperationCategory";
 import decodeInstruction from "../../utils/decode";
@@ -46,9 +46,11 @@ class IssueHandler {
 
     public handleIssuing() {
         const peekInstruction = this.instructionQueue.peek();
+
         if (!peekInstruction) {
             return;
         }
+
         this.instructionQueue.dequeue();
 
         this.instructionDecoded = decodeInstruction(peekInstruction);
@@ -80,10 +82,12 @@ class IssueHandler {
 
     private handleStoreInstruction() {
         const freeBuffer = this.storeBuffers.find((buffer) => buffer.busy === 0);
+
         if (!freeBuffer) {
             //TODO: stall
             return;
         }
+
         const storeInstruction = this.instructionDecoded as StoreType;
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
 
@@ -96,6 +100,7 @@ class IssueHandler {
 
     private handleLoadInstruction() {
         const freeBuffer = this.loadBuffers.find((buffer) => buffer.busy === 0);
+
         if (!freeBuffer) {
             //TODO: stall
             return;
@@ -119,6 +124,7 @@ class IssueHandler {
 
     private handleMulDivInstruction() {
         const freeStation = this.mulDivReservationStations.find((station) => station.busy === 0);
+
         if (!freeStation) {
             //TODO: stall
             return;
@@ -145,11 +151,14 @@ class IssueHandler {
 
     private handleAddSubInstruction() {
         const freeStation = this.addSubReservationStations.find((station) => station.busy === 0);
+
         if (!freeStation) {
             //TODO: stall
             return;
         }
+
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
+
         if (!this.isRType(this.instructionDecoded!)) {
             return;
         }

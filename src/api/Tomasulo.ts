@@ -8,6 +8,8 @@ import StoreBuffer from "./buffers/StoreBuffer";
 import RegisterFile from "./RegisterFile";
 import IssueHandler from "./tomasulo_stages/IssueHandler";
 import CommonDataBus from "./CommonDataBus";
+import ExecuteHandler from "./tomasulo_stages/ExecuteHandler";
+import WriteHandler from "./tomasulo_stages/WriteHandler";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -21,6 +23,7 @@ class Tomasulo {
     private commonDataBus: CommonDataBus;
     private currentClockCycle: number;
     private tagTimeMap: Map<Tag, number>;
+    private finishedTagValuePairs: TagValuePair[];
 
     constructor(
         instructions: string[],
@@ -32,7 +35,6 @@ class Tomasulo {
         this.instructionCache = new InstructionCache(instructions);
         this.dataCache = new DataCache();
         this.instructionQueue = new InstructionQueue();
-
         this.addSubReservationStations = Array(addSubReservationStationCount)
             .fill(null)
             .map((_, index) => new AddSubReservationStation(`A${index + 1}`));
@@ -45,11 +47,11 @@ class Tomasulo {
         this.storeBuffers = Array(storeBufferCount)
             .fill(null)
             .map((_, index) => new StoreBuffer(`S${index + 1}`));
-
         this.registerFile = new RegisterFile();
         this.commonDataBus = new CommonDataBus();
         this.currentClockCycle = 0;
         this.tagTimeMap = new Map();
+        this.finishedTagValuePairs = [];
     }
 
     public runTomasuloAlgorithm() {
@@ -64,6 +66,7 @@ class Tomasulo {
         }
     }
 
+    // TODO: Move the logic to FetchHandler.ts
     private fetch() {
         const fetchedInstruction = this.instructionCache.fetch();
         if (fetchedInstruction) {
@@ -85,15 +88,20 @@ class Tomasulo {
     }
 
     private execute() {
-        // Implement the execute stage of the Tomasulo algorithm here
-        //  loop over all reservation stations and buffers
-        //  for each station
-        //    if it can execute
-        //      decrement the remaining cycles for the instruction in this station
+        new ExecuteHandler(
+            this.addSubReservationStations,
+            this.mulDivReservationStations,
+            this.loadBuffers,
+            this.storeBuffers,
+            this.dataCache,
+            this.commonDataBus,
+            this.tagTimeMap,
+            this.finishedTagValuePairs
+        ).handleExecuting();
     }
 
     private write() {
-        // Implement the write stage of the Tomasulo algorithm here
+        // new WriteHandler().handleWriting();
     }
 }
 
