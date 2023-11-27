@@ -91,6 +91,7 @@ class ExecuteHandler {
         });
     }
 
+    // TODO: Review this method and its helper and maybe implement a more efficient solution
     private addToFinishedTagValuePairs(newTag: Tag, newValue: number) {
         const newPair: TagValuePair = { tag: newTag, value: newValue };
 
