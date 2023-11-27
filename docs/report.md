@@ -10,7 +10,7 @@ We will also be covering other related topics and details.
 
 ## Architecture and Design
 
-We have decided to use Object Orientation (OO) for the implementation of our architecture.
+We have decided to use Object Orientation (OO) for our main logic.
 
 Our language of choice was either going to be Java or TypeScript due to our familiarity with both, but since we knew we would develop a GUI, we opted for TypeScript so that we can also use React with TypeScript to develop the GUI, and just use one language instead of having a backend with Java and a frontend with TypeScript.
 
