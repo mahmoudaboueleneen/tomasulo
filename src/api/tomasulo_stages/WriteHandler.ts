@@ -84,6 +84,10 @@ class WriteHandler {
         this.addSubReservationStations.forEach((station) => {
             station.update(tagOnBus, valueOnBus);
         });
+
+        this.mulDivReservationStations.forEach((station) => {
+            station.update(tagOnBus, valueOnBus);
+        });
     }
 
     private updateStoreBuffers() {
