@@ -14,11 +14,15 @@ import WriteHandler from "./tomasulo_stages/WriteHandler";
 class Tomasulo {
     private instructionCache: InstructionCache;
     private dataCache: DataCache;
+
     private instructionQueue: InstructionQueue;
+
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
+
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
+
     private registerFile: RegisterFile;
     private commonDataBus: CommonDataBus;
     private currentClockCycle: number;
@@ -94,14 +98,22 @@ class Tomasulo {
             this.loadBuffers,
             this.storeBuffers,
             this.dataCache,
-            this.commonDataBus,
             this.tagTimeMap,
             this.finishedTagValuePairs
         ).handleExecuting();
     }
 
     private write() {
-        // new WriteHandler().handleWriting();
+        new WriteHandler(
+            this.addSubReservationStations,
+            this.mulDivReservationStations,
+            this.loadBuffers,
+            this.storeBuffers,
+            this.dataCache,
+            this.registerFile,
+            this.commonDataBus,
+            this.finishedTagValuePairs
+        ).handleWriting();
     }
 }
 
