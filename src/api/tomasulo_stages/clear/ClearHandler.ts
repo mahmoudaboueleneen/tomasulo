@@ -32,6 +32,8 @@ class ClearHandler {
         this.tagsToBeCleared.forEach((tag) => {
             this.clearStationOrBuffer(tag);
         });
+
+        this.clearTagsToBeCleared();
     }
 
     private clearStationOrBuffer(tag: Tag) {
@@ -52,6 +54,10 @@ class ClearHandler {
             const station = this.mulDivReservationStations.find((station) => station.tag === tag)!;
             station.clear();
         }
+    }
+
+    private clearTagsToBeCleared() {
+        this.tagsToBeCleared.length = 0;
     }
 }
 

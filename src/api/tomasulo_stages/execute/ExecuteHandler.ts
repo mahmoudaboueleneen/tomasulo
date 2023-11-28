@@ -7,7 +7,6 @@ import ReservationStation from "../../reservation_stations/ReservationStation";
 import FPMultiplier from "../../arithmetic_units/FPMultiplier";
 import FPAdder from "../../arithmetic_units/FPAdder";
 import AluElement from "../../arithmetic_units/AluElement";
-import RegisterInfo from "../../../interfaces/RegisterInfo";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
@@ -21,8 +20,8 @@ class ExecuteHandler {
     private finishedTagValuePairs: TagValuePair[];
     private candidateLoadBuffer: LoadBuffer | null;
     private candidateStoreBuffer: StoreBuffer | null;
-    private PCRegister: RegisterInfo;
     private tagsToBeCleared: Tag[];
+    private contentToBeWrittenToPCRegister: { content: number | null };
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -34,8 +33,8 @@ class ExecuteHandler {
         dataCache: DataCache,
         tagTimeMap: Map<Tag, number>,
         finishedTagValuePairs: TagValuePair[],
-        PCRegister: RegisterInfo,
-        tagsToBeCleared: Tag[]
+        tagsToBeCleared: Tag[],
+        contentToBeWrittenToPCRegister: { content: number | null }
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -46,11 +45,11 @@ class ExecuteHandler {
         this.dataCache = dataCache;
         this.tagTimeMap = tagTimeMap;
         this.finishedTagValuePairs = finishedTagValuePairs;
-        this.PCRegister = PCRegister;
 
         this.candidateLoadBuffer = null;
         this.candidateStoreBuffer = null;
         this.tagsToBeCleared = tagsToBeCleared;
+        this.contentToBeWrittenToPCRegister = contentToBeWrittenToPCRegister;
     }
 
     public handleExecuting() {
@@ -75,8 +74,8 @@ class ExecuteHandler {
                 if (station.isFinished()) {
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
                     if (station.op === "BNEZ") {
-                        if (computedValue !== 0) {
-                            // this.PCRegister.value = station.v;
+                        if (computedValue === 1) {
+                            this.contentToBeWrittenToPCRegister.content = station.A;
                         }
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);

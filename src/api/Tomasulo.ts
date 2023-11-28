@@ -14,6 +14,7 @@ import FPAdder from "./arithmetic_units/FPAdder";
 import FPMultiplier from "./arithmetic_units/FPMultiplier";
 import UpdateHandler from "./tomasulo_stages/update/UpdateHandler";
 import ClearHandler from "./tomasulo_stages/clear/ClearHandler";
+import FetchHandler from "./tomasulo_stages/fetch/FetchHandler";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -37,6 +38,8 @@ class Tomasulo {
     private FPMultipliers: FPMultiplier[];
 
     private tagsToBeCleared: Tag[];
+    private contentToBeWrittenToPCRegister: { content: number | null };
+
     constructor(
         instructions: string[],
         addSubReservationStationCount: number,
@@ -73,29 +76,59 @@ class Tomasulo {
         this.finishedTagValuePairs = [];
 
         this.tagsToBeCleared = [];
+        this.contentToBeWrittenToPCRegister = { content: null };
     }
 
     public runTomasuloAlgorithm() {
-        let temp = true;
-        while (temp) {
+        while (
+            this.instructionCache.hasNonFetchedInstructions() ||
+            !this.instructionQueue.isEmpty() ||
+            this.existRunningStationOrBuffer() ||
+            this.tagsToBeCleared.length > 0 ||
+            this.contentToBeWrittenToPCRegister.content ||
+            this.existWritesAwaitingWriting
+        ) {
             this.write();
             this.execute();
             this.issue();
             this.fetch();
-
             this.update();
             this.clear();
-
             this.currentClockCycle++;
         }
     }
 
-    // TODO: Move the logic to FetchHandler.ts
-    private fetch() {
-        const fetchedInstruction = this.instructionCache.fetch();
-        if (fetchedInstruction) {
-            this.instructionQueue.enqueue(fetchedInstruction);
-        }
+    private existRunningStationOrBuffer(): boolean {
+        return (
+            this.addSubReservationStations.some((station) => station.busy) ||
+            this.mulDivReservationStations.some((station) => station.busy) ||
+            this.loadBuffers.some((buffer) => buffer.busy) ||
+            this.storeBuffers.some((buffer) => buffer.busy)
+        );
+    }
+
+    private existWritesAwaitingWriting() {
+        return this.finishedTagValuePairs.length > 0;
+    }
+
+    private write() {
+        new WriteHandler(this.commonDataBus, this.finishedTagValuePairs, this.tagsToBeCleared).handleWriting();
+    }
+
+    private execute() {
+        new ExecuteHandler(
+            this.addSubReservationStations,
+            this.mulDivReservationStations,
+            this.FPAdders,
+            this.FPMultipliers,
+            this.loadBuffers,
+            this.storeBuffers,
+            this.dataCache,
+            this.tagTimeMap,
+            this.finishedTagValuePairs,
+            this.tagsToBeCleared,
+            this.contentToBeWrittenToPCRegister
+        ).handleExecuting();
     }
 
     private issue() {
@@ -112,35 +145,18 @@ class Tomasulo {
         ).handleIssuing();
     }
 
-    private execute() {
-        new ExecuteHandler(
-            this.addSubReservationStations,
-            this.mulDivReservationStations,
-            this.FPAdders,
-            this.FPMultipliers,
-            this.loadBuffers,
-            this.storeBuffers,
-            this.dataCache,
-            this.tagTimeMap,
-            this.finishedTagValuePairs,
-            this.registerFile.getPCRegister(),
-            this.tagsToBeCleared
-        ).handleExecuting();
-    }
-
-    private write() {
-        new WriteHandler(this.commonDataBus, this.finishedTagValuePairs, this.tagsToBeCleared).handleWriting();
+    private fetch() {
+        new FetchHandler(this.instructionCache, this.instructionQueue).handleFetching();
     }
 
     private update() {
         new UpdateHandler(
             this.addSubReservationStations,
             this.mulDivReservationStations,
-            this.loadBuffers,
             this.storeBuffers,
-            this.dataCache,
             this.registerFile,
-            this.commonDataBus
+            this.commonDataBus,
+            this.contentToBeWrittenToPCRegister
         ).handleUpdating();
     }
 

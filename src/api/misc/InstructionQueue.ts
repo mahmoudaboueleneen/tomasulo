@@ -16,6 +16,10 @@ class InstructionQueue {
     peek(): string | null {
         return this.instructions[0] || null;
     }
+
+    isEmpty(): boolean {
+        return this.instructions.length === 0;
+    }
 }
 
 export default InstructionQueue;
