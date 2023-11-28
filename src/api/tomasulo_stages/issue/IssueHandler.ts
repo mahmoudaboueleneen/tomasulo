@@ -59,6 +59,7 @@ class IssueHandler {
 
     public handleIssuing() {
         const peekInstruction = this.instructionQueue.peek();
+        console.log("Instruction inside the queue: ", peekInstruction);
 
         if (!peekInstruction) {
             return;
@@ -67,6 +68,7 @@ class IssueHandler {
         this.instructionQueue.dequeue();
 
         this.instructionDecoded = this.decodeHandler.decodeInstruction(peekInstruction);
+        console.log("Instruction decoded", this.instructionDecoded);
         this.issuedInstructionDestination = getIssuedInstructionDestination(
             this.instructionDecoded.Op as InstructionOperation
         );
@@ -103,6 +105,7 @@ class IssueHandler {
 
         const storeInstruction = this.instructionDecoded as StoreType;
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
+        freeBuffer.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
     }
@@ -122,6 +125,7 @@ class IssueHandler {
         }
 
         freeBuffer.loadInstructionIntoBuffer(loadInstruction.Address);
+        freeBuffer.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
         this.registerFile.writeTag(loadInstruction.Dest, freeBuffer.tag);
 
@@ -141,6 +145,10 @@ class IssueHandler {
 
         const mulDivInstruction = this.instructionDecoded as RType;
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
+        console.log("setting");
+        freeStation.setCyclesLeft(9);
+        console.log(this.mulDivReservationStations);
+        console.log("HELP ", freeStation);
 
         this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
 
@@ -148,6 +156,8 @@ class IssueHandler {
 
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", mulDivInstruction.Src1);
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", mulDivInstruction.Src2);
+
+        console.log("MulDiv Station: ", freeStation);
     }
 
     private handleAddSubInstruction() {
@@ -159,6 +169,8 @@ class IssueHandler {
         }
 
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
+        freeStation.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 
         if (this.isBNEZInstruction(this.instructionDecoded!)) {
@@ -181,6 +193,8 @@ class IssueHandler {
         const RInstruction = addSubInstruction as RType;
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", RInstruction.Src1);
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", RInstruction.Src2);
+
+        console.log("AddSub Station: ", freeStation);
     }
 
     private handleSettingVOrQInFreeSpot(

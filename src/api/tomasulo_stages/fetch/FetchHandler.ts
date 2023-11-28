@@ -16,6 +16,8 @@ class FetchHandler {
         if (fetchedInstruction) {
             this.instructionQueue.enqueue(fetchedInstruction);
         }
+
+        console.log("Fetched instruction: ", fetchedInstruction);
     }
 }
 

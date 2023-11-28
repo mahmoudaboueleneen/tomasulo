@@ -1,6 +1,5 @@
 import V from "../../types/V";
 import Q from "../../types/Q";
-import DecodedInstruction from "../misc/DecodedInstruction";
 import InstructionOperation from "../../types/InstructionOperation";
 import Address from "../../types/Address";
 import Tag from "../../types/Tag";
@@ -14,7 +13,7 @@ abstract class ReservationStation implements Executable {
     qj: Q;
     qk: Q;
     A: Address;
-    decodedInstructionObject: DecodedInstruction | null;
+    cyclesLeft: number;
 
     constructor(tag: string) {
         this.tag = tag;
@@ -25,7 +24,7 @@ abstract class ReservationStation implements Executable {
         this.qj = null;
         this.qk = null;
         this.A = null;
-        this.decodedInstructionObject = null;
+        this.cyclesLeft = 0;
     }
 
     public loadInstructionIntoStation(op: InstructionOperation) {
@@ -34,8 +33,9 @@ abstract class ReservationStation implements Executable {
     }
 
     public decrementCyclesLeft() {
-        if (this.decodedInstructionObject !== null) {
-            this.decodedInstructionObject.decrementCyclesLeft();
+        console.log("Decrementing");
+        if (this.cyclesLeft > 0) {
+            this.cyclesLeft--;
         }
     }
 
@@ -44,7 +44,7 @@ abstract class ReservationStation implements Executable {
     }
 
     public isFinished() {
-        return this.decodedInstructionObject !== null && this.decodedInstructionObject.isFinished();
+        return this.cyclesLeft === 0;
     }
 
     public clear() {
@@ -65,6 +65,12 @@ abstract class ReservationStation implements Executable {
             this.qk = 0;
             this.vk = value;
         }
+    }
+
+    public setCyclesLeft(cycles: number) {
+        console.log("HELP ME", cycles);
+        this.cyclesLeft = cycles;
+        console.log("HELPPPPP", this.cyclesLeft);
     }
 }
 

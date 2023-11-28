@@ -1,17 +1,16 @@
 import Tag from "../../types/Tag";
-import DecodedInstruction from "../misc/DecodedInstruction";
 
 abstract class Buffer implements Executable {
     tag: Tag;
     busy: 0 | 1;
     address: number | null;
-    decodedInstructionObject: DecodedInstruction | null;
+    cyclesLeft: number;
 
     constructor(tag: string) {
         this.tag = tag;
         this.busy = 0;
         this.address = null;
-        this.decodedInstructionObject = null;
+        this.cyclesLeft = 0;
     }
 
     loadInstructionIntoBuffer(address: number) {
@@ -19,23 +18,27 @@ abstract class Buffer implements Executable {
         this.address = address;
     }
 
+    decrementCyclesLeft() {
+        if (this.cyclesLeft > 0) {
+            this.cyclesLeft--;
+        }
+    }
+
     canExecute(): boolean {
         return !this.isFinished() && this.busy === 1;
     }
 
     isFinished() {
-        return this.decodedInstructionObject !== null && this.decodedInstructionObject.isFinished();
-    }
-
-    decrementCyclesLeft() {
-        if (this.decodedInstructionObject !== null) {
-            this.decodedInstructionObject.decrementCyclesLeft();
-        }
+        return this.cyclesLeft === 0;
     }
 
     clear() {
         this.busy = 0;
         this.address = null;
+    }
+
+    public setCyclesLeft(cycles: number) {
+        this.cyclesLeft = cycles;
     }
 }
 

@@ -14,6 +14,20 @@ class RegisterFile {
         this.loadIntegerValueRegisters();
         this.loadFloatingPointRegisters();
         this.loadSpecialRegisters();
+
+        // TODO: REMOVE THIS FOR TESTING!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        this.registers.set("F2", {
+            content: 2,
+            qi: 0
+        });
+        this.registers.set("F4", {
+            content: 4,
+            qi: 0
+        });
+        this.registers.set("F8", {
+            content: 8,
+            qi: 0
+        });
     }
 
     private loadSpecialRegisters() {

@@ -70,6 +70,7 @@ class ExecuteHandler {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
             if (station.canExecute()) {
+                console.log("Station can execute: ", station.tag);
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
                 if (station.isFinished()) {

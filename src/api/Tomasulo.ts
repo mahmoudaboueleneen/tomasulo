@@ -41,6 +41,8 @@ class Tomasulo {
     private tagsToBeCleared: Tag[];
     private contentToBeWrittenToPCRegister: { content: number | null };
 
+    private instructionLatencies: Map<string, number>;
+
     constructor(
         instructions: string[],
         addSubReservationStationCount: number,
@@ -56,12 +58,16 @@ class Tomasulo {
         this.addSubReservationStations = Array(addSubReservationStationCount)
             .fill(null)
             .map((_, index) => new AddSubReservationStation(`A${index + 1}`));
-        this.FPAdders = Array(addSubReservationStationCount);
+        this.FPAdders = Array(addSubReservationStationCount)
+            .fill(null)
+            .map((_) => new FPAdder());
 
         this.mulDivReservationStations = Array(mulDivReservationStationCount)
             .fill(null)
             .map((_, index) => new MulDivReservationStation(`M${index + 1}`));
-        this.FPMultipliers = Array(mulDivReservationStationCount);
+        this.FPMultipliers = Array(mulDivReservationStationCount)
+            .fill(null)
+            .map((_) => new FPMultiplier());
 
         this.loadBuffers = Array(loadBufferCount)
             .fill(null)
@@ -78,17 +84,21 @@ class Tomasulo {
 
         this.tagsToBeCleared = [];
         this.contentToBeWrittenToPCRegister = { content: null };
+
+        this.instructionLatencies = new Map().set("ADDI", 2).set("BNEZ", 1);
     }
 
     public runTomasuloAlgorithm() {
-        while (
-            this.instructionCache.hasNonFetchedInstructions() ||
-            !this.instructionQueue.isEmpty() ||
-            this.existRunningStationOrBuffer() ||
-            this.tagsToBeCleared.length > 0 ||
-            this.contentToBeWrittenToPCRegister.content ||
-            this.existWritesAwaitingWriting
-        ) {
+        // this.instructionCache.hasNonFetchedInstructions() ||
+        //     !this.instructionQueue.isEmpty() ||
+        //     this.existRunningStationOrBuffer() ||
+        //     this.tagsToBeCleared.length > 0 ||
+        //     this.contentToBeWrittenToPCRegister.content ||
+        //     this.existWritesAwaitingWriting
+        let i = 0;
+        while (i++ < 3) {
+            console.log("[+] Cycle Number", this.currentClockCycle);
+
             this.write();
             this.execute();
             this.issue();
