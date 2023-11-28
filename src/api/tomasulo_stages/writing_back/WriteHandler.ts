@@ -51,7 +51,8 @@ class WriteHandler {
         this.commonDataBus.write(tag, value);
 
         this.clearStationOrBuffer(tag);
-        this.updateReservationStations();
+        this.updateAddSubReservationStations();
+        this.updateMulDivReservationStations();
         this.updateStoreBuffers();
         this.updateRegisterFile();
     }
@@ -78,12 +79,16 @@ class WriteHandler {
         }
     }
 
-    private updateReservationStations() {
+    private updateAddSubReservationStations() {
         const { tag: tagOnBus, value: valueOnBus } = this.commonDataBus.read();
 
         this.addSubReservationStations.forEach((station) => {
             station.update(tagOnBus, valueOnBus);
         });
+    }
+
+    private updateMulDivReservationStations() {
+        const { tag: tagOnBus, value: valueOnBus } = this.commonDataBus.read();
 
         this.mulDivReservationStations.forEach((station) => {
             station.update(tagOnBus, valueOnBus);

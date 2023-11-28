@@ -1,3 +1,5 @@
+import InstructionOperation from "../../types/InstructionOperation";
+
 class DecodedInstruction {
     operation: InstructionOperation;
     destination: string;

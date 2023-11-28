@@ -18,6 +18,7 @@ import InstructionCache from "../../caches/InstructionCache";
 
 class DecodeHandler {
     private instructionCache: InstructionCache;
+
     constructor(instructionCache: InstructionCache) {
         this.instructionCache = instructionCache;
     }
@@ -26,6 +27,7 @@ class DecodeHandler {
         const words = instruction.split(" ");
 
         let label: string | undefined;
+
         if (this.isALabel(words[0])) {
             label = removeLastSymbol(words.shift()!.trim());
         }
