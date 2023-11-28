@@ -6,12 +6,14 @@ import MulDivReservationStation from "./reservation_stations/MulDivReservationSt
 import LoadBuffer from "./buffers/LoadBuffer";
 import StoreBuffer from "./buffers/StoreBuffer";
 import RegisterFile from "./misc/RegisterFile";
-import IssueHandler from "./tomasulo_stages/issuing/IssueHandler";
+import IssueHandler from "./tomasulo_stages/issue/IssueHandler";
 import CommonDataBus from "./misc/CommonDataBus";
-import ExecuteHandler from "./tomasulo_stages/execution/ExecuteHandler";
-import WriteHandler from "./tomasulo_stages/writing/WriteHandler";
+import ExecuteHandler from "./tomasulo_stages/execute/ExecuteHandler";
+import WriteHandler from "./tomasulo_stages/write/WriteHandler";
 import FPAdder from "./arithmetic_units/FPAdder";
 import FPMultiplier from "./arithmetic_units/FPMultiplier";
+import UpdateHandler from "./tomasulo_stages/update/UpdateHandler";
+import ClearHandler from "./tomasulo_stages/clear/ClearHandler";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -34,6 +36,7 @@ class Tomasulo {
     private FPAdders: FPAdder[];
     private FPMultipliers: FPMultiplier[];
 
+    private tagsToBeCleared: Tag[];
     constructor(
         instructions: string[],
         addSubReservationStationCount: number,
@@ -68,15 +71,20 @@ class Tomasulo {
         this.tagTimeMap = new Map();
 
         this.finishedTagValuePairs = [];
+
+        this.tagsToBeCleared = [];
     }
 
     public runTomasuloAlgorithm() {
         let temp = true;
         while (temp) {
             this.write();
-            this.issue();
             this.execute();
+            this.issue();
             this.fetch();
+
+            this.update();
+            this.clear();
 
             this.currentClockCycle++;
         }
@@ -115,21 +123,36 @@ class Tomasulo {
             this.dataCache,
             this.tagTimeMap,
             this.finishedTagValuePairs,
-            this.registerFile.getPCRegister()
+            this.registerFile.getPCRegister(),
+            this.tagsToBeCleared
         ).handleExecuting();
     }
 
     private write() {
-        new WriteHandler(
+        new WriteHandler(this.commonDataBus, this.finishedTagValuePairs, this.tagsToBeCleared).handleWriting();
+    }
+
+    private update() {
+        new UpdateHandler(
             this.addSubReservationStations,
             this.mulDivReservationStations,
             this.loadBuffers,
             this.storeBuffers,
             this.dataCache,
             this.registerFile,
-            this.commonDataBus,
-            this.finishedTagValuePairs
-        ).handleWriting();
+            this.commonDataBus
+        ).handleUpdating();
+    }
+
+    private clear() {
+        new ClearHandler(
+            this.addSubReservationStations,
+            this.mulDivReservationStations,
+            this.loadBuffers,
+            this.storeBuffers,
+            this.dataCache,
+            this.tagsToBeCleared
+        ).handleClearing();
     }
 }
 

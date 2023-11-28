@@ -22,6 +22,7 @@ class ExecuteHandler {
     private candidateLoadBuffer: LoadBuffer | null;
     private candidateStoreBuffer: StoreBuffer | null;
     private PCRegister: RegisterInfo;
+    private tagsToBeCleared: Tag[];
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -33,7 +34,8 @@ class ExecuteHandler {
         dataCache: DataCache,
         tagTimeMap: Map<Tag, number>,
         finishedTagValuePairs: TagValuePair[],
-        PCRegister: RegisterInfo
+        PCRegister: RegisterInfo,
+        tagsToBeCleared: Tag[]
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -48,6 +50,7 @@ class ExecuteHandler {
 
         this.candidateLoadBuffer = null;
         this.candidateStoreBuffer = null;
+        this.tagsToBeCleared = tagsToBeCleared;
     }
 
     public handleExecuting() {
@@ -111,6 +114,7 @@ class ExecuteHandler {
 
                 if (buffer.isFinished()) {
                     this.executeStore(buffer);
+                    this.tagsToBeCleared.push(buffer.tag);
                 }
             }
         }

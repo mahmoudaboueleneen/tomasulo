@@ -1,12 +1,12 @@
-import CommonDataBus from "../../misc/CommonDataBus";
-import RegisterFile from "../../misc/RegisterFile";
 import LoadBuffer from "../../buffers/LoadBuffer";
 import StoreBuffer from "../../buffers/StoreBuffer";
 import DataCache from "../../caches/DataCache";
+import CommonDataBus from "../../misc/CommonDataBus";
+import RegisterFile from "../../misc/RegisterFile";
 import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "../../reservation_stations/MulDivReservationStation";
 
-class WriteHandler {
+class UpdateHandler {
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
     private loadBuffers: LoadBuffer[];
@@ -14,8 +14,6 @@ class WriteHandler {
     private dataCache: DataCache;
     private registerFile: RegisterFile;
     private commonDataBus: CommonDataBus;
-    private finishedTagValuePairs: TagValuePair[];
-
     constructor(
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[],
@@ -23,8 +21,7 @@ class WriteHandler {
         storeBuffers: StoreBuffer[],
         dataCache: DataCache,
         registerFile: RegisterFile,
-        commonDataBus: CommonDataBus,
-        finishedTagValuePairs: TagValuePair[]
+        commonDataBus: CommonDataBus
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -33,50 +30,13 @@ class WriteHandler {
         this.dataCache = dataCache;
         this.registerFile = registerFile;
         this.commonDataBus = commonDataBus;
-        this.finishedTagValuePairs = finishedTagValuePairs;
     }
 
-    public handleWriting() {
-        if (this.finishedTagValuePairs.length === 0) {
-            return;
-        }
-
-        const nextPair = this.getNextFinishedTagValuePair();
-
-        if (!nextPair) {
-            throw new Error("No finished tag-value pairs left");
-        }
-
-        const { tag, value } = nextPair;
-        this.commonDataBus.write(tag, value);
-
-        this.clearStationOrBuffer(tag);
+    public handleUpdating() {
         this.updateAddSubReservationStations();
         this.updateMulDivReservationStations();
         this.updateStoreBuffers();
         this.updateRegisterFile();
-    }
-
-    private getNextFinishedTagValuePair() {
-        return this.finishedTagValuePairs.shift();
-    }
-
-    private clearStationOrBuffer(tag: Tag) {
-        if (tag!.startsWith("L")) {
-            const buffer = this.loadBuffers.find((buffer) => buffer.tag === tag)!;
-            buffer.clear();
-            this.dataCache.clearRunningBufferTag();
-        } else if (tag!.startsWith("S")) {
-            const buffer = this.storeBuffers.find((buffer) => buffer.tag === tag)!;
-            buffer.clear();
-            this.dataCache.clearRunningBufferTag();
-        } else if (tag!.startsWith("A")) {
-            const station = this.addSubReservationStations.find((station) => station.tag === tag)!;
-            station.clear();
-        } else if (tag!.startsWith("M")) {
-            const station = this.mulDivReservationStations.find((station) => station.tag === tag)!;
-            station.clear();
-        }
     }
 
     private updateAddSubReservationStations() {
@@ -110,4 +70,4 @@ class WriteHandler {
     }
 }
 
-export default WriteHandler;
+export default UpdateHandler;
