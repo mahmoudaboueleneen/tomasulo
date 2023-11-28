@@ -1,3 +1,4 @@
+import Tag from "../../types/Tag";
 import DecodedInstruction from "../misc/DecodedInstruction";
 
 abstract class Buffer implements Executable {

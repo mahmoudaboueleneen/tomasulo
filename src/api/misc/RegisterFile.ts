@@ -1,5 +1,6 @@
 import RegisterInfo from "../../interfaces/RegisterInfo";
 import Q from "../../types/Q";
+import Tag from "../../types/Tag";
 
 class RegisterFile {
     private registers: Map<string, RegisterInfo>;

@@ -1,3 +1,4 @@
+import Tag from "../../../types/Tag";
 import LoadBuffer from "../../buffers/LoadBuffer";
 import StoreBuffer from "../../buffers/StoreBuffer";
 import DataCache from "../../caches/DataCache";

@@ -1,4 +1,5 @@
 import Q from "../../types/Q";
+import Tag from "../../types/Tag";
 import V from "../../types/V";
 import Buffer from "./Buffer";
 

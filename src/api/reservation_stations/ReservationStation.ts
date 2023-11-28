@@ -3,6 +3,7 @@ import Q from "../../types/Q";
 import DecodedInstruction from "../misc/DecodedInstruction";
 import InstructionOperation from "../../types/InstructionOperation";
 import Address from "../../types/Address";
+import Tag from "../../types/Tag";
 
 abstract class ReservationStation implements Executable {
     tag: Tag;

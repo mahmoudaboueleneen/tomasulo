@@ -1,3 +1,5 @@
+import Tag from "../../types/Tag";
+
 /**
  * DataCache represents the main data memory unit in our architecture.
  */

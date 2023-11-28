@@ -15,6 +15,7 @@ import FPMultiplier from "./arithmetic_units/FPMultiplier";
 import UpdateHandler from "./tomasulo_stages/update/UpdateHandler";
 import ClearHandler from "./tomasulo_stages/clear/ClearHandler";
 import FetchHandler from "./tomasulo_stages/fetch/FetchHandler";
+import Tag from "../types/Tag";
 
 class Tomasulo {
     private instructionCache: InstructionCache;

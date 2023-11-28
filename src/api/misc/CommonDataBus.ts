@@ -1,3 +1,5 @@
+import Tag from "../../types/Tag";
+
 class CommonDataBus {
     private tag: Tag;
     private value: number;

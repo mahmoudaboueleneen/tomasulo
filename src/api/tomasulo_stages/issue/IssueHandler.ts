@@ -17,6 +17,7 @@ import MulDivReservationStation from "../../reservation_stations/MulDivReservati
 import InstructionOperation from "../../../types/InstructionOperation";
 import DecodeHandler from "./DecodeHandler";
 import InstructionCache from "../../caches/InstructionCache";
+import Tag from "../../../types/Tag";
 
 class IssueHandler {
     private decodeHandler: DecodeHandler;

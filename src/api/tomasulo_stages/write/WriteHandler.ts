@@ -1,3 +1,4 @@
+import Tag from "../../../types/Tag";
 import CommonDataBus from "../../misc/CommonDataBus";
 
 class WriteHandler {

@@ -7,6 +7,7 @@ import ReservationStation from "../../reservation_stations/ReservationStation";
 import FPMultiplier from "../../arithmetic_units/FPMultiplier";
 import FPAdder from "../../arithmetic_units/FPAdder";
 import AluElement from "../../arithmetic_units/AluElement";
+import Tag from "../../../types/Tag";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
