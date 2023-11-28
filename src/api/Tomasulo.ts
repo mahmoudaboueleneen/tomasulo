@@ -9,7 +9,7 @@ import RegisterFile from "./misc/RegisterFile";
 import IssueHandler from "./tomasulo_stages/issuing/IssueHandler";
 import CommonDataBus from "./misc/CommonDataBus";
 import ExecuteHandler from "./tomasulo_stages/execution/ExecuteHandler";
-import WriteHandler from "./tomasulo_stages/writing_back/WriteHandler";
+import WriteHandler from "./tomasulo_stages/writing/WriteHandler";
 import FPAdder from "./arithmetic_units/FPAdder";
 import FPMultiplier from "./arithmetic_units/FPMultiplier";
 
