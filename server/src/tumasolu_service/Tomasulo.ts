@@ -97,7 +97,7 @@ class Tomasulo {
         //     this.contentToBeWrittenToPCRegister.content ||
         //     this.existWritesAwaitingWriting
         let i = 0;
-        while (i++ < 3) {
+        while (i++ < 4) {
             console.log("[+] Cycle Number", this.currentClockCycle);
 
             this.write();

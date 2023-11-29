@@ -34,7 +34,6 @@ abstract class ReservationStation implements Executable {
   }
 
   public decrementCyclesLeft() {
-    console.log('Decrementing');
     if (this.cyclesLeft > 0) {
       this.cyclesLeft--;
     }
@@ -71,9 +70,7 @@ abstract class ReservationStation implements Executable {
   }
 
   public setCyclesLeft(cycles: number) {
-    console.log('HELP ME', cycles);
     this.cyclesLeft = cycles;
-    console.log('HELPPPPP', this.cyclesLeft);
   }
 }
 

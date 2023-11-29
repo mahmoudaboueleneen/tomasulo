@@ -145,10 +145,7 @@ class IssueHandler {
 
         const mulDivInstruction = this.instructionDecoded as RType;
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
-        console.log("setting");
-        freeStation.setCyclesLeft(9);
-        console.log(this.mulDivReservationStations);
-        console.log("HELP ", freeStation);
+        freeStation.setCyclesLeft(2);// TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
         this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
 

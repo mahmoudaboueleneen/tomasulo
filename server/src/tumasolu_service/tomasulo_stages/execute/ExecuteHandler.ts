@@ -76,6 +76,7 @@ class ExecuteHandler {
                 stationAluElement.setBusy(1);
                 if (station.isFinished()) {
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
+                    console.log(`Tag ${station.tag} finshed execution with value ${computedValue}`);
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
                             this.contentToBeWrittenToPCRegister.content = station.A;
