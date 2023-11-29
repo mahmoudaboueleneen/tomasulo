@@ -104,7 +104,7 @@ class IssueHandler {
 
         const storeInstruction = this.instructionDecoded as StoreType;
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
-        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
 
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
     }
@@ -123,7 +123,7 @@ class IssueHandler {
         }
 
         freeBuffer.loadInstructionIntoBuffer(loadInstruction.Address);
-        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeBuffer.setCyclesLeft(8); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
 
         this.registerFile.writeTag(loadInstruction.Dest, freeBuffer.tag);
 
@@ -143,7 +143,7 @@ class IssueHandler {
         const mulDivInstruction = this.instructionDecoded as RType;
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
 
-        freeStation.setCyclesLeft(10); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeStation.setCyclesLeft(4); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
 
         switch (freeStation.op) {
             case "DIV.D":
@@ -172,7 +172,7 @@ class IssueHandler {
         }
 
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
-        freeStation.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeStation.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
 
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 

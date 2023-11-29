@@ -23,4 +23,6 @@ const instructions2: string[] = [
     "ADD.D F6, F8, F2"
 ];
 
-new Tomasulo(instructions2, 3, 2, 3, 3).runTomasuloAlgorithm();
+const instructions3: string[] = ["LOOP: L.D F0, 0", "MUL.D F4, F0, F2", "S.D F4, 0", "SUBI R1, R1, 8", "BNEZ R1, LOOP"];
+
+new Tomasulo(instructions3, 3, 2, 3, 3).runTomasuloAlgorithm();

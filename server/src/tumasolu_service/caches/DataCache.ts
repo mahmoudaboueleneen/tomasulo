@@ -7,9 +7,13 @@ class DataCache {
     private data: Map<number, number>;
     private runningBufferTag: Tag;
 
-    constructor() {
-        this.data = new Map<number, number>();
-        this.runningBufferTag = null;
+    constructor(data?: Map<number, number>, runningBufferTag?: Tag) {
+        this.data = data || new Map();
+        this.runningBufferTag = runningBufferTag || null;
+    }
+
+    clone(): DataCache {
+        return new DataCache(new Map(this.data), this.runningBufferTag);
     }
 
     read(address: number): number {

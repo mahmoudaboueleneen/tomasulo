@@ -5,9 +5,17 @@ import Tag from "../../types/Tag";
 class RegisterFile {
     private registers: Map<string, RegisterInfo>;
 
-    constructor() {
-        this.registers = new Map<string, RegisterInfo>();
-        this.initializeRegisters();
+    constructor(registers?: Map<string, RegisterInfo>) {
+        if (registers) {
+            this.registers = registers;
+        } else {
+            this.registers = new Map<string, RegisterInfo>();
+            this.initializeRegisters();
+        }
+    }
+
+    clone(): RegisterFile {
+        return new RegisterFile(new Map(this.registers));
     }
 
     private initializeRegisters() {

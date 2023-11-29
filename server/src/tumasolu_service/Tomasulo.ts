@@ -17,6 +17,7 @@ import ClearHandler from "./tomasulo_stages/clear/ClearHandler";
 import FetchHandler from "./tomasulo_stages/fetch/FetchHandler";
 import Tag from "../types/Tag";
 import TagValuePair from "../interfaces/TagValuePair";
+import TomasuloInstance from "../types/TomasuloInstance";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -49,11 +50,13 @@ class Tomasulo {
         addSubReservationStationCount: number,
         mulDivReservationStationCount: number,
         loadBufferCount: number,
-        storeBufferCount: number
+        storeBufferCount: number,
+        registerFile?: RegisterFile,
+        dataCache?: DataCache
     ) {
-        this.registerFile = new RegisterFile();
+        this.registerFile = registerFile || new RegisterFile();
         this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
-        this.dataCache = new DataCache();
+        this.dataCache = dataCache || new DataCache();
         this.instructionQueue = new InstructionQueue();
 
         this.addSubReservationStations = Array(addSubReservationStationCount)
@@ -89,7 +92,9 @@ class Tomasulo {
         this.instructionLatencies = new Map().set("ADDI", 2).set("BNEZ", 1);
     }
 
-    public runTomasuloAlgorithm() {
+    // TODO: Update the condition
+    public runTomasuloAlgorithm(): TomasuloInstance[] {
+        const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [this.createTomasuloInstance()];
         // this.instructionCache.hasNonFetchedInstructions() ||
         //     !this.instructionQueue.isEmpty() ||
         //     this.existRunningStationOrBuffer() ||
@@ -98,8 +103,8 @@ class Tomasulo {
         //     this.existWritesAwaitingWriting
         let i = 0;
         while (i++ < 60) {
+            console.log("==================================================================================== \n");
             console.log("[+] Cycle Number", this.currentClockCycle);
-            console.log();
 
             this.write();
             this.execute();
@@ -109,42 +114,55 @@ class Tomasulo {
             this.clear();
             this.currentClockCycle++;
 
-            console.log("Instruction Queue", this.instructionQueue, "\n");
+            tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
+
+            console.log("[+] Instruction Queue", this.instructionQueue.getInstructions(), "\n");
 
             console.log(
-                "Busy AddSub Stations",
+                "[+] Busy AddSub Stations",
                 this.addSubReservationStations.filter((station) => station.busy === 1),
                 "\n"
             );
             console.log(
-                "Busy MulDiv Stations",
+                "[+] Busy MulDiv Stations",
                 this.mulDivReservationStations.filter((station) => station.busy === 1),
                 "\n"
             );
             console.log(
-                "Busy Load Buffers",
+                "[+] Busy Load Buffers",
                 this.loadBuffers.filter((buffer) => buffer.busy === 1),
                 "\n"
             );
             console.log(
-                "Busy Store Buffers",
+                "[+] Busy Store Buffers",
                 this.storeBuffers.filter((buffer) => buffer.busy === 1),
                 "\n"
             );
 
+            console.log("[+] Register File \n");
             this.registerFile.getRegisters().forEach((value, key) => {
                 if (value.qi !== 0 || value.content !== 0) {
-                    console.log(key, value);
+                    console.log("   ", key, value);
                 }
             });
-
-            console.log("\n");
-
-            console.log(
-                "[+] ====================================================================================",
-                "\n"
-            );
+            console.log("\n\n");
         }
+
+        return tomasuloInstancesAtEachCycle;
+    }
+
+    private createTomasuloInstance(): TomasuloInstance {
+        return {
+            addSubReservationStations: [...this.addSubReservationStations],
+            mulDivReservationStations: [...this.mulDivReservationStations],
+            loadBuffers: [...this.loadBuffers],
+            storeBuffers: [...this.storeBuffers],
+            instructionCache: this.instructionCache.clone(),
+            dataCache: this.dataCache.clone(),
+            instructionQueue: this.instructionQueue.clone(),
+            registerFile: this.registerFile.clone(),
+            currentClockCycle: this.currentClockCycle
+        };
     }
 
     private existRunningStationOrBuffer(): boolean {
@@ -218,6 +236,37 @@ class Tomasulo {
             this.dataCache,
             this.tagsToBeCleared
         ).handleClearing();
+    }
+
+    public getInstructionCache(): InstructionCache {
+        return this.instructionCache;
+    }
+    public getDataCache(): DataCache {
+        return this.dataCache;
+    }
+    public getInstructionQueue(): InstructionQueue {
+        return this.instructionQueue;
+    }
+    public getAddSubReservationStations(): AddSubReservationStation[] {
+        return this.addSubReservationStations;
+    }
+    public getMulDivReservationStations(): MulDivReservationStation[] {
+        return this.mulDivReservationStations;
+    }
+    public getLoadBuffers(): LoadBuffer[] {
+        return this.loadBuffers;
+    }
+    public getStoreBuffers(): StoreBuffer[] {
+        return this.storeBuffers;
+    }
+    public getRegisterFile(): RegisterFile {
+        return this.registerFile;
+    }
+    public getCommonDataBus(): CommonDataBus {
+        return this.commonDataBus;
+    }
+    public getCurrentClockCycle(): number {
+        return this.currentClockCycle;
     }
 }
 
