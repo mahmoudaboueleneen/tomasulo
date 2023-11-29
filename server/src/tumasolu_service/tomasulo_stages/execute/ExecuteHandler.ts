@@ -8,6 +8,7 @@ import FPMultiplier from "../../arithmetic_units/FPMultiplier";
 import FPAdder from "../../arithmetic_units/FPAdder";
 import AluElement from "../../arithmetic_units/AluElement";
 import Tag from "../../../types/Tag";
+import TagValuePair from "../../../interfaces/TagValuePair";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];

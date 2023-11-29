@@ -1,3 +1,0 @@
-interface Executable {
-    canExecute(): void;
-}
