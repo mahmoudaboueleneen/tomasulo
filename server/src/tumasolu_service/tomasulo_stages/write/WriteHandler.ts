@@ -24,8 +24,6 @@ class WriteHandler {
     }
 
     public handleWriting() {
-        console.log(this.tagsToBeCleared);
-
         if (
             this.finishedTagValuePairs.length === 0 &&
             this.BNEZStationToBeCleared.tag === null &&
@@ -45,9 +43,6 @@ class WriteHandler {
             this.commonDataBus.write(tag, value);
             this.tagsToBeCleared.push(tag);
         }
-
-        console.log("Store buffer to be cleared", this.storeBufferToBeCleared);
-        console.log("BNEZ station to be cleared", this.BNEZStationToBeCleared);
 
         if (this.storeBufferToBeCleared.tag) {
             this.tagsToBeCleared.push(this.storeBufferToBeCleared.tag);

@@ -189,6 +189,7 @@ class IssueHandler {
             const ImmediateInstruction = addSubInstruction as IType;
             this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", ImmediateInstruction.Src);
             freeStation.vk = ImmediateInstruction.Immediate;
+            this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
             return;
         }
 

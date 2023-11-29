@@ -203,7 +203,8 @@ class Tomasulo {
             this.tagsToBeCleared,
             this.contentToBeWrittenToPCRegister,
             this.storeBufferToBeCleared,
-            this.BNEZStationToBeCleared
+            this.BNEZStationToBeCleared,
+            this.registerFile
         ).handleExecuting();
     }
 

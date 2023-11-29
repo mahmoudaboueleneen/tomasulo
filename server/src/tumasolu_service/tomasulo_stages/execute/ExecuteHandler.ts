@@ -9,6 +9,8 @@ import FPAdder from "../../arithmetic_units/FPAdder";
 import AluElement from "../../arithmetic_units/AluElement";
 import Tag from "../../../types/Tag";
 import TagValuePair from "../../../interfaces/TagValuePair";
+import RegisterFile from "../../misc/RegisterFile";
+import { register } from "module";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
@@ -26,6 +28,7 @@ class ExecuteHandler {
     private contentToBeWrittenToPCRegister: { content: number | null };
     private storeBufferToBeCleared: { tag: Tag };
     private BNEZStationToBeCleared: { tag: Tag };
+    private registerFile: RegisterFile;
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -40,7 +43,8 @@ class ExecuteHandler {
         tagsToBeCleared: Tag[],
         contentToBeWrittenToPCRegister: { content: number | null },
         storeBufferToBeCleared: { tag: Tag },
-        BNEZStationToBeCleared: { tag: Tag }
+        BNEZStationToBeCleared: { tag: Tag },
+        registerFile: RegisterFile
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -51,13 +55,13 @@ class ExecuteHandler {
         this.dataCache = dataCache;
         this.tagTimeMap = tagTimeMap;
         this.finishedTagValuePairs = finishedTagValuePairs;
-
         this.candidateLoadBuffer = null;
         this.candidateStoreBuffer = null;
         this.tagsToBeCleared = tagsToBeCleared;
         this.contentToBeWrittenToPCRegister = contentToBeWrittenToPCRegister;
         this.storeBufferToBeCleared = storeBufferToBeCleared;
         this.BNEZStationToBeCleared = BNEZStationToBeCleared;
+        this.registerFile = registerFile;
     }
 
     public handleExecuting() {
@@ -86,11 +90,9 @@ class ExecuteHandler {
 
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
-                            this.contentToBeWrittenToPCRegister.content = station.A;
+                            this.registerFile.setPCRegisterValue(station.A!);
                         }
 
-                        // this.tagsToBeCleared.push(station.tag);
-                        console.log("Setting tag to be cleared", station.tag);
                         this.BNEZStationToBeCleared.tag = station.tag;
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
