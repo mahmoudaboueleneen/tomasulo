@@ -89,7 +89,7 @@ class ExecuteHandler {
                             this.contentToBeWrittenToPCRegister.content = station.A;
                         }
 
-                        this.tagsToBeCleared.push(station.tag);
+                        // this.tagsToBeCleared.push(station.tag);
                         this.BNEZStationToBeCleared.tag = station.tag;
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
