@@ -97,8 +97,9 @@ class Tomasulo {
         //     this.contentToBeWrittenToPCRegister.content ||
         //     this.existWritesAwaitingWriting
         let i = 0;
-        while (i++ < 4) {
+        while (i++ < 60) {
             console.log("[+] Cycle Number", this.currentClockCycle);
+            console.log();
 
             this.write();
             this.execute();
@@ -107,6 +108,42 @@ class Tomasulo {
             this.update();
             this.clear();
             this.currentClockCycle++;
+
+            console.log("Instruction Queue", this.instructionQueue, "\n");
+
+            console.log(
+                "Busy AddSub Stations",
+                this.addSubReservationStations.filter((station) => station.busy === 1),
+                "\n"
+            );
+            console.log(
+                "Busy MulDiv Stations",
+                this.mulDivReservationStations.filter((station) => station.busy === 1),
+                "\n"
+            );
+            console.log(
+                "Busy Load Buffers",
+                this.loadBuffers.filter((buffer) => buffer.busy === 1),
+                "\n"
+            );
+            console.log(
+                "Busy Store Buffers",
+                this.storeBuffers.filter((buffer) => buffer.busy === 1),
+                "\n"
+            );
+
+            this.registerFile.getRegisters().forEach((value, key) => {
+                if (value.qi !== 0 || value.content !== 0) {
+                    console.log(key, value);
+                }
+            });
+
+            console.log("\n");
+
+            console.log(
+                "[+] ====================================================================================",
+                "\n"
+            );
         }
     }
 

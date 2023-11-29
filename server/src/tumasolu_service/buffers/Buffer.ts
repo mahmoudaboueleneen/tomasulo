@@ -1,46 +1,46 @@
-import Executable from '../../interfaces/Executable';
-import Tag from '../../types/Tag';
+import Executable from "../../interfaces/Executable";
+import Tag from "../../types/Tag";
 
 abstract class Buffer implements Executable {
-  tag: Tag;
-  busy: 0 | 1;
-  address: number | null;
-  cyclesLeft: number;
+    tag: Tag;
+    busy: 0 | 1;
+    address: number | null;
+    cyclesLeft: number;
 
-  constructor(tag: string) {
-    this.tag = tag;
-    this.busy = 0;
-    this.address = null;
-    this.cyclesLeft = 0;
-  }
-
-  loadInstructionIntoBuffer(address: number) {
-    this.busy = 1;
-    this.address = address;
-  }
-
-  decrementCyclesLeft() {
-    if (this.cyclesLeft > 0) {
-      this.cyclesLeft--;
+    constructor(tag: string) {
+        this.tag = tag;
+        this.busy = 0;
+        this.address = null;
+        this.cyclesLeft = 0;
     }
-  }
 
-  canExecute(): boolean {
-    return !this.isFinished() && this.busy === 1;
-  }
+    loadInstructionIntoBuffer(address: number) {
+        this.busy = 1;
+        this.address = address;
+    }
 
-  isFinished() {
-    return this.cyclesLeft === 0;
-  }
+    decrementCyclesLeft() {
+        if (this.cyclesLeft > 0) {
+            this.cyclesLeft--;
+        }
+    }
 
-  clear() {
-    this.busy = 0;
-    this.address = null;
-  }
+    canExecute(): boolean {
+        return !this.isFinished() && this.busy === 1;
+    }
 
-  public setCyclesLeft(cycles: number) {
-    this.cyclesLeft = cycles;
-  }
+    isFinished() {
+        return this.cyclesLeft === 1;
+    }
+
+    clear() {
+        this.busy = 0;
+        this.address = null;
+    }
+
+    public setCyclesLeft(cycles: number) {
+        this.cyclesLeft = cycles;
+    }
 }
 
 export default Buffer;

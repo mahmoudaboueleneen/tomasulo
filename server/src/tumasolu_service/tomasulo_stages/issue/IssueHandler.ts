@@ -59,7 +59,6 @@ class IssueHandler {
 
     public handleIssuing() {
         const peekInstruction = this.instructionQueue.peek();
-        console.log("Instruction inside the queue: ", peekInstruction);
 
         if (!peekInstruction) {
             return;
@@ -68,10 +67,11 @@ class IssueHandler {
         this.instructionQueue.dequeue();
 
         this.instructionDecoded = this.decodeHandler.decodeInstruction(peekInstruction);
-        console.log("Instruction decoded", this.instructionDecoded);
+
         this.issuedInstructionDestination = getIssuedInstructionDestination(
             this.instructionDecoded.Op as InstructionOperation
         );
+
         switch (this.issuedInstructionDestination) {
             case IssuedInstructionDestination.ADD_SUB: {
                 this.handleAddSubInstruction();
@@ -99,13 +99,12 @@ class IssueHandler {
         const freeBuffer = this.storeBuffers.find((buffer) => buffer.busy === 0);
 
         if (!freeBuffer) {
-            //TODO: stall
             return;
         }
 
         const storeInstruction = this.instructionDecoded as StoreType;
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
-        freeBuffer.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
     }
@@ -114,18 +113,17 @@ class IssueHandler {
         const freeBuffer = this.loadBuffers.find((buffer) => buffer.busy === 0);
 
         if (!freeBuffer) {
-            //TODO: stall
             return;
         }
 
         const loadInstruction = this.instructionDecoded as LoadType;
+
         if (this.isAnyStoreIssuedForAddress(loadInstruction.Address)) {
-            //TODO: stall
             return;
         }
 
         freeBuffer.loadInstructionIntoBuffer(loadInstruction.Address);
-        freeBuffer.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
         this.registerFile.writeTag(loadInstruction.Dest, freeBuffer.tag);
 
@@ -139,29 +137,37 @@ class IssueHandler {
         const freeStation = this.mulDivReservationStations.find((station) => station.busy === 0);
 
         if (!freeStation) {
-            //TODO: stall
             return;
         }
 
         const mulDivInstruction = this.instructionDecoded as RType;
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
-        freeStation.setCyclesLeft(2);// TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
 
-        this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
+        freeStation.setCyclesLeft(10); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM THE MAP!!!!!!!!
+
+        switch (freeStation.op) {
+            case "DIV.D":
+                freeStation.setCyclesLeft(40);
+                break;
+            case "MUL.D":
+                freeStation.setCyclesLeft(10);
+                break;
+            default:
+                throw new Error("Invalid operation");
+        }
 
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", mulDivInstruction.Src1);
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", mulDivInstruction.Src2);
 
-        console.log("MulDiv Station: ", freeStation);
+        this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
     }
 
     private handleAddSubInstruction() {
         const freeStation = this.addSubReservationStations.find((station) => station.busy === 0);
 
         if (!freeStation) {
-            //TODO: stall
             return;
         }
 
@@ -178,7 +184,6 @@ class IssueHandler {
         }
 
         const addSubInstruction = this.instructionDecoded as RType | IType;
-        this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
 
         if (this.isIType(addSubInstruction)) {
             const ImmediateInstruction = addSubInstruction as IType;
@@ -191,7 +196,7 @@ class IssueHandler {
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", RInstruction.Src1);
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", RInstruction.Src2);
 
-        console.log("AddSub Station: ", freeStation);
+        this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
     }
 
     private handleSettingVOrQInFreeSpot(

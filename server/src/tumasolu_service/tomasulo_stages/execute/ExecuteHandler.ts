@@ -71,12 +71,10 @@ class ExecuteHandler {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
             if (station.canExecute()) {
-                console.log("Station can execute: ", station.tag);
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
                 if (station.isFinished()) {
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
-                    console.log(`Tag ${station.tag} finshed execution with value ${computedValue}`);
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
                             this.contentToBeWrittenToPCRegister.content = station.A;
@@ -152,7 +150,11 @@ class ExecuteHandler {
             this.isFirstTagLaterThanSecondTag(pair.tag, newTag)
         );
 
-        this.finishedTagValuePairs = pairsIssuedBeforeOrAtSameTime.concat(newPair).concat(pairsIssuedAfter);
+        // Clear the array
+        this.finishedTagValuePairs.length = 0;
+
+        // Add the elements back in the desired order
+        this.finishedTagValuePairs.push(...pairsIssuedBeforeOrAtSameTime, newPair, ...pairsIssuedAfter);
     }
 
     private isFirstTagLaterThanSecondTag(firstTag: Tag, secondTag: Tag) {
