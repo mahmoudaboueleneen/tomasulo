@@ -16,6 +16,7 @@ import UpdateHandler from "./tomasulo_stages/update/UpdateHandler";
 import ClearHandler from "./tomasulo_stages/clear/ClearHandler";
 import FetchHandler from "./tomasulo_stages/fetch/FetchHandler";
 import Tag from "../types/Tag";
+import TomasuloInstance from "../types/TomasuloElements";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -80,7 +81,8 @@ class Tomasulo {
         this.contentToBeWrittenToPCRegister = { content: null };
     }
 
-    public runTomasuloAlgorithm() {
+    public runTomasuloAlgorithm(): TomasuloInstance[] {
+        const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [this.createTomasuloInstance()];
         while (
             this.instructionCache.hasNonFetchedInstructions() ||
             !this.instructionQueue.isEmpty() ||
@@ -96,7 +98,23 @@ class Tomasulo {
             this.update();
             this.clear();
             this.currentClockCycle++;
+
+            tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
         }
+        return tomasuloInstancesAtEachCycle;
+    }
+    private createTomasuloInstance(): TomasuloInstance {
+        return {
+            addSubReservationStations: [...this.addSubReservationStations],
+            mulDivReservationStations: [...this.mulDivReservationStations],
+            loadBuffers: [...this.loadBuffers],
+            storeBuffers: [...this.storeBuffers],
+            instructionCache: this.instructionCache.clone(),
+            dataCache: this.dataCache.clone(),
+            instructionQueue: this.instructionQueue.clone(),
+            registerFile: this.registerFile.clone(),
+            currentClockCycle: this.currentClockCycle
+        };
     }
 
     private existRunningStationOrBuffer(): boolean {
@@ -170,6 +188,37 @@ class Tomasulo {
             this.dataCache,
             this.tagsToBeCleared
         ).handleClearing();
+    }
+
+    public getInstructionCache(): InstructionCache {
+        return this.instructionCache;
+    }
+    public getDataCache(): DataCache {
+        return this.dataCache;
+    }
+    public getInstructionQueue(): InstructionQueue {
+        return this.instructionQueue;
+    }
+    public getAddSubReservationStations(): AddSubReservationStation[] {
+        return this.addSubReservationStations;
+    }
+    public getMulDivReservationStations(): MulDivReservationStation[] {
+        return this.mulDivReservationStations;
+    }
+    public getLoadBuffers(): LoadBuffer[] {
+        return this.loadBuffers;
+    }
+    public getStoreBuffers(): StoreBuffer[] {
+        return this.storeBuffers;
+    }
+    public getRegisterFile(): RegisterFile {
+        return this.registerFile;
+    }
+    public getCommonDataBus(): CommonDataBus {
+        return this.commonDataBus;
+    }
+    public getCurrentClockCycle(): number {
+        return this.currentClockCycle;
     }
 }
 

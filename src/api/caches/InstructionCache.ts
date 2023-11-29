@@ -5,11 +5,24 @@ class InstructionCache {
     private PCRegister: RegisterInfo;
     private codeLabelAddressPairs: Map<string, number>;
 
-    constructor(instructions: string[], PCRegister: RegisterInfo) {
+    constructor(instructions: string[], PCRegister: RegisterInfo, codeLabelAddressPairs?: Map<string, number>) {
         this.instructions = instructions;
         this.PCRegister = PCRegister;
-        this.codeLabelAddressPairs = new Map();
-        this.loadCodeLabelAddressPairs();
+
+        if (codeLabelAddressPairs) {
+            this.codeLabelAddressPairs = codeLabelAddressPairs;
+        } else {
+            this.codeLabelAddressPairs = new Map();
+            this.loadCodeLabelAddressPairs();
+        }
+    }
+
+    public clone(): InstructionCache {
+        return new InstructionCache(
+            [...this.instructions],
+            { ...this.PCRegister },
+            new Map(this.codeLabelAddressPairs)
+        );
     }
 
     private loadCodeLabelAddressPairs() {

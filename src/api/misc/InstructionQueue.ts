@@ -1,8 +1,11 @@
 class InstructionQueue {
     private instructions: string[];
 
-    constructor() {
-        this.instructions = [];
+    constructor(instructions?: string[]) {
+        this.instructions = instructions || [];
+    }
+    clone(): InstructionQueue {
+        return new InstructionQueue([...this.instructions]);
     }
 
     enqueue(instruction: string): void {
