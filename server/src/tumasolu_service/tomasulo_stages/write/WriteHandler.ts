@@ -24,19 +24,30 @@ class WriteHandler {
     }
 
     public handleWriting() {
-        if (this.finishedTagValuePairs.length === 0) {
+        console.log(this.tagsToBeCleared);
+
+        if (
+            this.finishedTagValuePairs.length === 0 &&
+            this.BNEZStationToBeCleared.tag === null &&
+            this.storeBufferToBeCleared.tag === null
+        ) {
             return;
         }
 
-        const nextPair = this.getNextFinishedTagValuePair();
+        if (this.finishedTagValuePairs.length > 0) {
+            const nextPair = this.getNextFinishedTagValuePair();
 
-        if (!nextPair) {
-            throw new Error("No finished tag-value pairs left");
+            if (!nextPair) {
+                throw new Error("No finished tag-value pairs left");
+            }
+
+            const { tag, value } = nextPair;
+            this.commonDataBus.write(tag, value);
+            this.tagsToBeCleared.push(tag);
         }
 
-        const { tag, value } = nextPair;
-        this.commonDataBus.write(tag, value);
-        this.tagsToBeCleared.push(tag);
+        console.log("Store buffer to be cleared", this.storeBufferToBeCleared);
+        console.log("BNEZ station to be cleared", this.BNEZStationToBeCleared);
 
         if (this.storeBufferToBeCleared.tag) {
             this.tagsToBeCleared.push(this.storeBufferToBeCleared.tag);

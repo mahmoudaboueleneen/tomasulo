@@ -90,6 +90,7 @@ class ExecuteHandler {
                         }
 
                         // this.tagsToBeCleared.push(station.tag);
+                        console.log("Setting tag to be cleared", station.tag);
                         this.BNEZStationToBeCleared.tag = station.tag;
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
