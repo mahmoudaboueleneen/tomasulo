@@ -47,11 +47,13 @@ class Tomasulo {
         addSubReservationStationCount: number,
         mulDivReservationStationCount: number,
         loadBufferCount: number,
-        storeBufferCount: number
+        storeBufferCount: number,
+        registerFile?: RegisterFile,
+        dataCache?: DataCache
     ) {
-        this.registerFile = new RegisterFile();
+        this.registerFile = registerFile || new RegisterFile();
         this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
-        this.dataCache = new DataCache();
+        this.dataCache = dataCache || new DataCache();
         this.instructionQueue = new InstructionQueue();
 
         this.addSubReservationStations = Array(addSubReservationStationCount)
