@@ -3,7 +3,7 @@ import RegisterInfo from "../../interfaces/RegisterInfo";
 class InstructionCache {
     private instructions: string[];
     private PCRegister: RegisterInfo;
-    private codeLabelAddressPairs: Map<string, number>;
+    codeLabelAddressPairs: Map<string, number>;
 
     constructor(instructions: string[], PCRegister: RegisterInfo, codeLabelAddressPairs?: Map<string, number>) {
         this.instructions = instructions;
@@ -27,18 +27,25 @@ class InstructionCache {
 
     private loadCodeLabelAddressPairs() {
         this.instructions.forEach((instruction, address) => {
-            const label = instruction.split(":")[0].trim();
-            if (label) {
-                this.codeLabelAddressPairs.set(label, address);
+            const parts = instruction.split(":");
+
+            if (parts.length > 1) {
+                const label = instruction.split(":")[0].trim();
+
+                if (label) {
+                    this.codeLabelAddressPairs.set(label, address);
+                }
             }
         });
     }
 
     public getInstructionAddress(label: string): number {
         const address = this.codeLabelAddressPairs.get(label);
-        if (!address) {
+
+        if (address === undefined) {
             throw new Error(`Invalid label ${label}`);
         }
+
         return address;
     }
 

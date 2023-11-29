@@ -6,11 +6,21 @@ class WriteHandler {
     private commonDataBus: CommonDataBus;
     private finishedTagValuePairs: TagValuePair[];
     private tagsToBeCleared: Tag[];
+    private storeBufferToBeCleared: { tag: Tag };
+    private BNEZStationToBeCleared: { tag: Tag };
 
-    constructor(commonDataBus: CommonDataBus, finishedTagValuePairs: TagValuePair[], tagsToBeCleared: Tag[]) {
+    constructor(
+        commonDataBus: CommonDataBus,
+        finishedTagValuePairs: TagValuePair[],
+        tagsToBeCleared: Tag[],
+        storeBufferToBeCleared: { tag: Tag },
+        BNEZStationToBeCleared: { tag: Tag }
+    ) {
         this.commonDataBus = commonDataBus;
         this.finishedTagValuePairs = finishedTagValuePairs;
         this.tagsToBeCleared = tagsToBeCleared;
+        this.storeBufferToBeCleared = storeBufferToBeCleared;
+        this.BNEZStationToBeCleared = BNEZStationToBeCleared;
     }
 
     public handleWriting() {
@@ -27,6 +37,14 @@ class WriteHandler {
         const { tag, value } = nextPair;
         this.commonDataBus.write(tag, value);
         this.tagsToBeCleared.push(tag);
+
+        if (this.storeBufferToBeCleared.tag) {
+            this.tagsToBeCleared.push(this.storeBufferToBeCleared.tag);
+        }
+
+        if (this.BNEZStationToBeCleared.tag) {
+            this.tagsToBeCleared.push(this.BNEZStationToBeCleared.tag);
+        }
     }
 
     private getNextFinishedTagValuePair() {

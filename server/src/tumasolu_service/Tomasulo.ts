@@ -22,27 +22,22 @@ import TomasuloInstance from "../types/TomasuloInstance";
 class Tomasulo {
     private instructionCache: InstructionCache;
     private dataCache: DataCache;
-
     private instructionQueue: InstructionQueue;
-
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
-
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
-
     private registerFile: RegisterFile;
     private commonDataBus: CommonDataBus;
     private currentClockCycle: number;
     private tagTimeMap: Map<Tag, number>;
     private finishedTagValuePairs: TagValuePair[];
-
     private FPAdders: FPAdder[];
     private FPMultipliers: FPMultiplier[];
-
     private tagsToBeCleared: Tag[];
     private contentToBeWrittenToPCRegister: { content: number | null };
-
+    private storeBufferToBeCleared: { tag: Tag };
+    private BNEZStationToBeCleared: { tag: Tag };
     private instructionLatencies: Map<string, number>;
 
     constructor(
@@ -89,6 +84,9 @@ class Tomasulo {
         this.tagsToBeCleared = [];
         this.contentToBeWrittenToPCRegister = { content: null };
 
+        this.storeBufferToBeCleared = { tag: null };
+        this.BNEZStationToBeCleared = { tag: null };
+
         this.instructionLatencies = new Map().set("ADDI", 2).set("BNEZ", 1);
     }
 
@@ -102,6 +100,9 @@ class Tomasulo {
         //     this.contentToBeWrittenToPCRegister.content ||
         //     this.existWritesAwaitingWriting
         let i = 0;
+
+        console.log("InstructionCache", this.instructionCache.codeLabelAddressPairs);
+
         while (i++ < 60) {
             console.log("==================================================================================== \n");
             console.log("[+] Cycle Number", this.currentClockCycle);
@@ -112,12 +113,13 @@ class Tomasulo {
             this.fetch();
             this.update();
             this.clear();
+
             this.currentClockCycle++;
 
             tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
 
-            console.log("[+] Instruction Queue", this.instructionQueue.getInstructions(), "\n");
-
+            console.log("[+] PC Register", this.registerFile.getPCRegister(), "\n");
+            console.log("[+] Instruction Queue", this.instructionQueue, "\n");
             console.log(
                 "[+] Busy AddSub Stations",
                 this.addSubReservationStations.filter((station) => station.busy === 1),
@@ -138,7 +140,6 @@ class Tomasulo {
                 this.storeBuffers.filter((buffer) => buffer.busy === 1),
                 "\n"
             );
-
             console.log("[+] Register File \n");
             this.registerFile.getRegisters().forEach((value, key) => {
                 if (value.qi !== 0 || value.content !== 0) {
@@ -179,7 +180,13 @@ class Tomasulo {
     }
 
     private write() {
-        new WriteHandler(this.commonDataBus, this.finishedTagValuePairs, this.tagsToBeCleared).handleWriting();
+        new WriteHandler(
+            this.commonDataBus,
+            this.finishedTagValuePairs,
+            this.tagsToBeCleared,
+            this.storeBufferToBeCleared,
+            this.BNEZStationToBeCleared
+        ).handleWriting();
     }
 
     private execute() {
@@ -194,7 +201,9 @@ class Tomasulo {
             this.tagTimeMap,
             this.finishedTagValuePairs,
             this.tagsToBeCleared,
-            this.contentToBeWrittenToPCRegister
+            this.contentToBeWrittenToPCRegister,
+            this.storeBufferToBeCleared,
+            this.BNEZStationToBeCleared
         ).handleExecuting();
     }
 

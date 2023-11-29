@@ -44,7 +44,7 @@ abstract class ReservationStation implements Executable {
     }
 
     public isFinished() {
-        return this.cyclesLeft === 1;
+        return this.cyclesLeft === 0;
     }
 
     public clear() {

@@ -30,7 +30,7 @@ abstract class Buffer implements Executable {
     }
 
     isFinished() {
-        return this.cyclesLeft === 1;
+        return this.cyclesLeft === 0;
     }
 
     clear() {

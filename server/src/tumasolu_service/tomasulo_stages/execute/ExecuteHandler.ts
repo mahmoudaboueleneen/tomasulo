@@ -24,6 +24,8 @@ class ExecuteHandler {
     private candidateStoreBuffer: StoreBuffer | null;
     private tagsToBeCleared: Tag[];
     private contentToBeWrittenToPCRegister: { content: number | null };
+    private storeBufferToBeCleared: { tag: Tag };
+    private BNEZStationToBeCleared: { tag: Tag };
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
@@ -36,7 +38,9 @@ class ExecuteHandler {
         tagTimeMap: Map<Tag, number>,
         finishedTagValuePairs: TagValuePair[],
         tagsToBeCleared: Tag[],
-        contentToBeWrittenToPCRegister: { content: number | null }
+        contentToBeWrittenToPCRegister: { content: number | null },
+        storeBufferToBeCleared: { tag: Tag },
+        BNEZStationToBeCleared: { tag: Tag }
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -52,6 +56,8 @@ class ExecuteHandler {
         this.candidateStoreBuffer = null;
         this.tagsToBeCleared = tagsToBeCleared;
         this.contentToBeWrittenToPCRegister = contentToBeWrittenToPCRegister;
+        this.storeBufferToBeCleared = storeBufferToBeCleared;
+        this.BNEZStationToBeCleared = BNEZStationToBeCleared;
     }
 
     public handleExecuting() {
@@ -70,15 +76,21 @@ class ExecuteHandler {
     private handleRunningInstructionsInStations(stations: ReservationStation[], AluElements: AluElement[]) {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
+
             if (station.canExecute()) {
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
+
                 if (station.isFinished()) {
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
+
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
                             this.contentToBeWrittenToPCRegister.content = station.A;
                         }
+
+                        this.tagsToBeCleared.push(station.tag);
+                        this.BNEZStationToBeCleared.tag = station.tag;
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
                     }
@@ -115,7 +127,8 @@ class ExecuteHandler {
 
                 if (buffer.isFinished()) {
                     this.executeStore(buffer);
-                    this.tagsToBeCleared.push(buffer.tag);
+                    // this.tagsToBeCleared.push(buffer.tag);
+                    this.storeBufferToBeCleared.tag = buffer.tag;
                 }
             }
         }
@@ -129,13 +142,17 @@ class ExecuteHandler {
         if (this.candidateLoadBuffer && this.candidateStoreBuffer) {
             if (this.isFirstTagLaterThanSecondTag(loadTag!, storeTag!)) {
                 this.dataCache.setRunningBufferTag(storeTag!);
+                this.candidateStoreBuffer.decrementCyclesLeft();
             } else {
                 this.dataCache.setRunningBufferTag(loadTag!);
+                this.candidateLoadBuffer.decrementCyclesLeft();
             }
         } else if (this.candidateStoreBuffer) {
             this.dataCache.setRunningBufferTag(storeTag!);
+            this.candidateStoreBuffer.decrementCyclesLeft();
         } else if (this.candidateLoadBuffer) {
             this.dataCache.setRunningBufferTag(loadTag!);
+            this.candidateLoadBuffer.decrementCyclesLeft();
         }
     }
 
