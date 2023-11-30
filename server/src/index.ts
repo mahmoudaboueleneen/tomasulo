@@ -50,6 +50,8 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
 
         const tomasuloInstances = tomasulo.runTomasuloAlgorithm();
 
+        console.log("Finished running tomasulo algorithm, proceeding to send response");
+
         res.status(200).json({
             tomasuloInstances: tomasuloInstances
         });
