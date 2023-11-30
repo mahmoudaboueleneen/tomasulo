@@ -25,7 +25,8 @@ const Output = () => {
                 reservationStationsSizes,
                 parsedInstructions
             });
-            setTomasuloInstances(response.data);
+            setTomasuloInstances(response.data.tomasuloInstances);
+            setCurrentTomasuloInstance(response.data.tomasuloInstances[0]);
 
             setIsLoading(false);
         };
@@ -33,18 +34,20 @@ const Output = () => {
         fetchTomasuloData();
     }, []);
 
-    useEffect(() => {
-        if (tomasuloInstances.length > 0) {
-            setCurrentTomasuloInstance(tomasuloInstances[cycleNumber]);
-        }
-    }, [cycleNumber, tomasuloInstances]);
-
     const incrementCycle = () => {
-        setCycleNumber((prevCycleNumber) => prevCycleNumber + 1);
+        setCycleNumber((prevCycleNumber) => {
+            const newCycleNumber = prevCycleNumber + 1;
+            setCurrentTomasuloInstance(tomasuloInstances[newCycleNumber]);
+            return newCycleNumber;
+        });
     };
 
     const decrementCycle = () => {
-        setCycleNumber((prevCycleNumber) => (prevCycleNumber > 0 ? prevCycleNumber - 1 : 0));
+        setCycleNumber((prevCycleNumber) => {
+            const newCycleNumber = prevCycleNumber > 0 ? prevCycleNumber - 1 : 0;
+            setCurrentTomasuloInstance(tomasuloInstances[newCycleNumber]);
+            return newCycleNumber;
+        });
     };
 
     if (isLoading) {
@@ -71,7 +74,7 @@ const Output = () => {
 
                 <Typography variant="h5" component={"h1"}>{`Cycle Number ${cycleNumber}`}</Typography>
 
-                <IconButton onClick={incrementCycle}>
+                <IconButton onClick={incrementCycle} disabled={cycleNumber === tomasuloInstances.length - 1}>
                     <ArrowForwardIosIcon />
                 </IconButton>
             </Box>
@@ -154,7 +157,7 @@ const Output = () => {
                         />
                     </Box>
 
-                    <Box>
+                    {/* <Box>
                         <Typography variant="body1">Reg. File</Typography>
                         <ReusableTable
                             columns={["Register", "Qi", "Content"]}
@@ -166,9 +169,9 @@ const Output = () => {
                                 })
                             )}
                         />
-                    </Box>
+                    </Box> */}
 
-                    <Box>
+                    {/* <Box>
                         <Typography variant="body1">Data Cache</Typography>
                         <ReusableTable
                             columns={["Address", "Value"]}
@@ -179,7 +182,7 @@ const Output = () => {
                                 })
                             )}
                         />
-                    </Box>
+                    </Box> */}
                 </Box>
             </Box>
         </>
