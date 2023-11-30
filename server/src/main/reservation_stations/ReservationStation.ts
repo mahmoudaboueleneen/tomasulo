@@ -16,17 +16,28 @@ abstract class ReservationStation implements Executable {
     A: Address;
     cyclesLeft: number;
 
-    constructor(tag: string) {
+    constructor(
+        tag: string,
+        busy?: 0 | 1,
+        op?: InstructionOperation,
+        vj?: V,
+        vk?: V,
+        qj?: Q,
+        qk?: Q,
+        A?: Address,
+        cyclesLeft?: number
+    ) {
         this.tag = tag;
-        this.busy = 0;
-        this.op = null;
-        this.vj = null;
-        this.vk = null;
-        this.qj = null;
-        this.qk = null;
-        this.A = null;
-        this.cyclesLeft = 0;
+        this.busy = busy !== undefined ? busy : 0;
+        this.op = op || null;
+        this.vj = vj !== undefined ? vj : null;
+        this.vk = vk !== undefined ? vk : null;
+        this.qj = qj !== undefined ? qj : null;
+        this.qk = qk !== undefined ? qk : null;
+        this.A = A !== undefined ? A : null;
+        this.cyclesLeft = cyclesLeft !== undefined ? cyclesLeft : 0;
     }
+    abstract clone(): ReservationStation;
 
     public loadInstructionIntoStation(op: InstructionOperation) {
         this.busy = 1;

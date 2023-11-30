@@ -7,12 +7,14 @@ abstract class Buffer implements Executable {
     address: number | null;
     cyclesLeft: number;
 
-    constructor(tag: string) {
+    constructor(tag: string, busy?: 0 | 1, address?: number, cyclesLeft?: number) {
         this.tag = tag;
-        this.busy = 0;
-        this.address = null;
-        this.cyclesLeft = 0;
+        this.busy = busy !== undefined ? busy : 0;
+        this.address = address !== undefined ? address : null;
+        this.cyclesLeft = cyclesLeft !== undefined ? cyclesLeft : 0;
     }
+
+    abstract clone(): Buffer;
 
     loadInstructionIntoBuffer(address: number) {
         this.busy = 1;

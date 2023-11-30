@@ -7,10 +7,13 @@ class StoreBuffer extends Buffer {
     v: V;
     q: Q;
 
-    constructor(tag: string) {
-        super(tag);
-        this.v = null;
-        this.q = null;
+    constructor(tag: string, busy?: 0 | 1, address?: number, cyclesLeft?: number, v?: V, q?: Q) {
+        super(tag, busy, address, cyclesLeft);
+        this.v = v !== undefined ? v : null;
+        this.q = q !== undefined ? q : null;
+    }
+    clone(): Buffer {
+        return new StoreBuffer(this.tag!, this.busy, this.address!, this.cyclesLeft, this.v, this.q);
     }
 
     setV(v: V) {

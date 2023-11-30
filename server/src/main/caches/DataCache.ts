@@ -43,6 +43,10 @@ class DataCache {
     clearRunningBufferTag(): void {
         this.runningBufferTag = null;
     }
+
+    getData(): Map<number, number> {
+        return this.data;
+    }
 }
 
 export default DataCache;

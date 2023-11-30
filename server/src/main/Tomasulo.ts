@@ -185,14 +185,14 @@ class Tomasulo {
 
     private createTomasuloInstance(): TomasuloInstance {
         return {
-            addSubReservationStations: [...this.addSubReservationStations],
-            mulDivReservationStations: [...this.mulDivReservationStations],
-            loadBuffers: [...this.loadBuffers],
-            storeBuffers: [...this.storeBuffers],
+            addSubReservationStations: this.addSubReservationStations.map((station) => station.clone()),
+            mulDivReservationStations: this.mulDivReservationStations.map((station) => station.clone()),
+            loadBuffers: this.loadBuffers.map((buffer) => buffer.clone()),
+            storeBuffers: this.storeBuffers.map((buffer) => buffer.clone()),
             instructionCache: this.instructionCache.clone(),
-            dataCache: this.dataCache.clone(),
-            instructionQueue: this.instructionQueue.clone(),
-            registerFile: this.registerFile.clone(),
+            dataCache: this.dataCache.clone().getData(),
+            instructionQueue: this.instructionQueue.clone().getInstructions(),
+            registerFile: this.registerFile.clone().getRegisters(),
             currentClockCycle: this.currentClockCycle
         };
     }
