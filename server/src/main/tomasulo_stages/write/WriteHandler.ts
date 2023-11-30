@@ -1,6 +1,6 @@
 import TagValuePair from "../../../interfaces/TagValuePair";
 import Tag from "../../../types/Tag";
-import CommonDataBus from "../../misc/CommonDataBus";
+import CommonDataBus from "../../CommonDataBus";
 
 class WriteHandler {
     private commonDataBus: CommonDataBus;

@@ -1,4 +1,4 @@
-import Tag from "../../types/Tag";
+import Tag from "../types/Tag";
 
 class CommonDataBus {
     private tag: Tag;

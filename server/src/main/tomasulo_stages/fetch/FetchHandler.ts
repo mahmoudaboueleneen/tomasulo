@@ -1,5 +1,5 @@
 import InstructionCache from "../../caches/InstructionCache";
-import InstructionQueue from "../../misc/InstructionQueue";
+import InstructionQueue from "../../InstructionQueue";
 
 class FetchHandler {
     private instructionCache: InstructionCache;

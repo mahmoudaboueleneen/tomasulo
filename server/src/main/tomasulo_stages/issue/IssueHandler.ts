@@ -1,8 +1,8 @@
 import IssuedInstructionDestination from "../../../types/enums/IssuedInstructionDestination";
 import { StoreType, LoadType, RType, BranchType, IType } from "../../../interfaces/op_categories";
 import InstructionOperationCategory from "../../../types/InstructionOperationCategory";
-import InstructionQueue from "../../misc/InstructionQueue";
-import RegisterFile from "../../misc/RegisterFile";
+import InstructionQueue from "../../InstructionQueue";
+import RegisterFile from "../../RegisterFile";
 import LoadBuffer from "../../buffers/LoadBuffer";
 import StoreBuffer from "../../buffers/StoreBuffer";
 import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";

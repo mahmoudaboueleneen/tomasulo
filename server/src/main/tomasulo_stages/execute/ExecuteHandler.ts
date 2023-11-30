@@ -9,7 +9,7 @@ import FPAdder from "../../arithmetic_units/FPAdder";
 import AluElement from "../../arithmetic_units/AluElement";
 import Tag from "../../../types/Tag";
 import TagValuePair from "../../../interfaces/TagValuePair";
-import RegisterFile from "../../misc/RegisterFile";
+import RegisterFile from "../../RegisterFile";
 import { register } from "module";
 
 class ExecuteHandler {

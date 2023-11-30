@@ -1,13 +1,13 @@
 import InstructionCache from "./caches/InstructionCache";
 import DataCache from "./caches/DataCache";
-import InstructionQueue from "./misc/InstructionQueue";
+import InstructionQueue from "./InstructionQueue";
 import AddSubReservationStation from "./reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "./reservation_stations/MulDivReservationStation";
 import LoadBuffer from "./buffers/LoadBuffer";
 import StoreBuffer from "./buffers/StoreBuffer";
-import RegisterFile from "./misc/RegisterFile";
+import RegisterFile from "./RegisterFile";
 import IssueHandler from "./tomasulo_stages/issue/IssueHandler";
-import CommonDataBus from "./misc/CommonDataBus";
+import CommonDataBus from "./CommonDataBus";
 import ExecuteHandler from "./tomasulo_stages/execute/ExecuteHandler";
 import WriteHandler from "./tomasulo_stages/write/WriteHandler";
 import FPAdder from "./arithmetic_units/FPAdder";
@@ -66,8 +66,8 @@ class Tomasulo {
         registerFile?: RegisterFile,
         dataCache?: DataCache
     ) {
-        this.dataCache = dataCache || new DataCache();
         this.registerFile = registerFile || new RegisterFile();
+        this.dataCache = dataCache || new DataCache();
 
         this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
         this.instructionQueue = new InstructionQueue();

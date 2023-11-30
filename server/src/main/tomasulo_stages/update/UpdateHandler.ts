@@ -1,6 +1,6 @@
 import StoreBuffer from "../../buffers/StoreBuffer";
-import CommonDataBus from "../../misc/CommonDataBus";
-import RegisterFile from "../../misc/RegisterFile";
+import CommonDataBus from "../../CommonDataBus";
+import RegisterFile from "../../RegisterFile";
 import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "../../reservation_stations/MulDivReservationStation";
 
