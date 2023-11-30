@@ -8,8 +8,8 @@ const FPDivInstructionList = ["DIV.D", "DIV.S", "DIV.PS"];
 
 const BranchInstructionList = ["BNEZ"];
 
-const LoadInstructionList = ["LD", "LW", "LWU", "LB", "LBU", "LH", "LHU", "L.D", "L.S"];
-const StoreInstructionList = ["SD", "SW", "SWU", "SB", "SBU", "SH", "SHU", "S.D", "S.S"];
+export const LoadInstructionList = ["LD", "LW", "LWU", "LB", "LBU", "LH", "LHU", "L.D", "L.S"];
+export const StoreInstructionList = ["SD", "SW", "SWU", "SB", "SBU", "SH", "SHU", "S.D", "S.S"];
 
 export const AddImmediateInstructions = new Set(AddImmediateInstructionList);
 export const SubImmediateInstructions = new Set(SubImmediateInstructionList);

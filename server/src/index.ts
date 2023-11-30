@@ -13,42 +13,56 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
-    const {
-        FPAddLatency,
-        FPSubtractLatency,
-        FPMultiplyLatency,
-        FPDivideLatency,
-        IntSubtractLatency,
-        LoadLatency,
-        StoreLatency
-        // IntAddLatency,
-        // BranchNotEqualZeroLatency
-    } = req.body.instructionLatencies;
+    try {
+        const {
+            FPAddLatency,
+            FPSubtractLatency,
+            FPMultiplyLatency,
+            FPDivideLatency,
+            IntSubtractLatency,
+            LoadLatency,
+            StoreLatency
+            // IntAddLatency,
+            // BranchNotEqualZeroLatency
+        } = req.body.instructionLatencies;
 
-    const { LoadBufferSize, StoreBufferSize } = req.body.bufferSizes;
+        const { LoadBufferSize, StoreBufferSize } = req.body.bufferSizes;
 
-    const { AddSubtractReservationStationSize, MultiplyDivideReservationStationSize } =
-        req.body.reservationStationsSizes;
+        const { AddSubtractReservationStationSize, MultiplyDivideReservationStationSize } =
+            req.body.reservationStationsSizes;
 
-    const parsedInstructions = req.body.parsedInstructions;
+        const parsedInstructions = req.body.parsedInstructions;
 
-    res.status(200).json({
-        instructionLatencies: req.body.instructionLatencies,
-        bufferSizes: req.body.bufferSizes,
-        reservationStationsSizes: req.body.reservationStationsSizes,
-        parsedInstructions: req.body.parsedInstructions,
-        numberOfCycles: req.body.numberOfCycles
-    });
-    // Run the Tomasulo algorithm
-    // const tomasulo = new Tomasulo();
-    // const tomasuloInstances = tomasulo.runTomasuloAlgorithm();
-    // Send the response back to the client
-    // res.send(tomasuloInstances);
+        const tomasulo = new Tomasulo(
+            parsedInstructions,
+            AddSubtractReservationStationSize,
+            MultiplyDivideReservationStationSize,
+            LoadBufferSize,
+            StoreBufferSize,
+            FPAddLatency,
+            FPSubtractLatency,
+            FPMultiplyLatency,
+            FPDivideLatency,
+            IntSubtractLatency,
+            LoadLatency,
+            StoreLatency
+        );
+
+        const tomasuloInstances = tomasulo.runTomasuloAlgorithm();
+
+        res.status(200).json({
+            tomasuloInstances: tomasuloInstances
+        });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).toString() });
+    }
 });
 
 app.listen(port, () => {
     console.log(`Server is listening on port ${port}`);
 });
+
+// DEBUG MANUALLY IN THE CLI, DON'T DELETE
 
 // const instructions1: string[] = ["DIV.D F0, F2, F4", "ADD.D F6, F0, F8", "SUB.D F8, F10, F14", "MUL.D F6, F10, F8"];
 
