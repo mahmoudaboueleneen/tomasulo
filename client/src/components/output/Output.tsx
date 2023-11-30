@@ -23,7 +23,7 @@ const Output = () => {
                 instructionLatencies,
                 bufferSizes,
                 reservationStationsSizes,
-                parseInstructions: parsedInstructions
+                parsedInstructions
             });
             setTomasuloInstances(response.data);
 
