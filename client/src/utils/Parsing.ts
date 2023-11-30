@@ -13,7 +13,7 @@ export const parseInstructions = async (input: Instructions | null | undefined):
 const readFileContent = (file: File): Promise<string[]> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (event) => resolve((event.target?.result as string).split("\n"));
+        reader.onload = (event) => resolve((event.target?.result as string).split(/\r\n|\r|\n/));
         reader.onerror = (error) => reject(error);
         reader.readAsText(file);
     });
