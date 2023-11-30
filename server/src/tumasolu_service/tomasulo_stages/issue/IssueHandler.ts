@@ -1,7 +1,6 @@
 import IssuedInstructionDestination from "../../../types/enums/IssuedInstructionDestination";
 import { StoreType, LoadType, RType, BranchType, IType } from "../../../interfaces/op_categories";
 import InstructionOperationCategory from "../../../types/InstructionOperationCategory";
-import getIssuedInstructionDestination from "../../../utils/getIssuedInstructionDestination";
 import InstructionQueue from "../../misc/InstructionQueue";
 import RegisterFile from "../../misc/RegisterFile";
 import LoadBuffer from "../../buffers/LoadBuffer";
@@ -12,6 +11,7 @@ import InstructionOperation from "../../../types/InstructionOperation";
 import DecodeHandler from "./DecodeHandler";
 import InstructionCache from "../../caches/InstructionCache";
 import Tag from "../../../types/Tag";
+import getIssuedInstructionDestination from "../../../utils/getIssuedInstructionDestination";
 
 class IssueHandler {
     private decodeHandler: DecodeHandler;
