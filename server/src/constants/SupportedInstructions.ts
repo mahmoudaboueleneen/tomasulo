@@ -1,5 +1,5 @@
-const AddImmediateInstructions = ["ADDI"];
-const SubImmediateInstructions = ["SUBI"];
+const AddImmediateInstructionList = ["ADDI"];
+const SubImmediateInstructionList = ["SUBI"];
 
 const FPAddInstructionList = ["ADD.D", "ADD.S", "ADD.PS"];
 const FPSubInstructionList = ["SUB.D", "SUB.S", "SUB.PS"];
@@ -8,15 +8,23 @@ const FPDivInstructionList = ["DIV.D", "DIV.S", "DIV.PS"];
 
 const BranchInstructionList = ["BNEZ"];
 
-export const LoadInstructionList = ["LD", "LW", "LWU", "LB", "LBU", "LH", "LHU", "L.D", "L.S"];
-export const StoreInstructionList = ["SD", "SW", "SWU", "SB", "SBU", "SH", "SHU", "S.D", "S.S"];
+const LoadInstructionList = ["LD", "LW", "LWU", "LB", "LBU", "LH", "LHU", "L.D", "L.S"];
+const StoreInstructionList = ["SD", "SW", "SWU", "SB", "SBU", "SH", "SHU", "S.D", "S.S"];
 
-export const AddInstructions = new Set(FPAddInstructionList.concat(AddImmediateInstructions));
-export const SubInstructions = new Set(FPSubInstructionList.concat(SubImmediateInstructions));
+export const AddImmediateInstructions = new Set(AddImmediateInstructionList);
+export const SubImmediateInstructions = new Set(SubImmediateInstructionList);
+
+export const FPAddInstructions = new Set(FPAddInstructionList);
+export const FPSubInstructions = new Set(FPSubInstructionList);
+export const FPMulInstructions = new Set(FPMulInstructionList);
+export const FPDivInstructions = new Set(FPDivInstructionList);
+
+export const AddInstructions = new Set(FPAddInstructionList.concat(AddImmediateInstructionList));
+export const SubInstructions = new Set(FPSubInstructionList.concat(SubImmediateInstructionList));
 export const MulInstructions = new Set(FPMulInstructionList);
 export const DivInstructions = new Set(FPDivInstructionList);
 
-export const ImmediateInstructions = new Set(AddImmediateInstructions.concat(SubImmediateInstructions));
+export const ImmediateInstructions = new Set(AddImmediateInstructionList.concat(SubImmediateInstructionList));
 export const RInstructions = new Set(
     FPAddInstructionList.concat(FPSubInstructionList).concat(FPMulInstructionList).concat(FPDivInstructionList)
 );

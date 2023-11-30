@@ -57,12 +57,12 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
 
                 <div style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
-                        Instruction latencies
+                        Instruction Latencies
                     </Typography>
 
                     <div>
                         <Typography variant="h5" component="div" gutterBottom>
-                            FP instructions latencies
+                            FP Instruction Latencies
                         </Typography>
 
                         <InstructionLatencyInput
@@ -92,13 +92,31 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
 
                     <div>
                         <Typography variant="h5" component="div" gutterBottom>
-                            Integer instructions latencies
+                            Integer Instruction Latencies
                         </Typography>
 
                         <InstructionLatencyInput
                             name="IntSubtractLatency"
                             value={context.instructionLatencies.IntSubtractLatency}
                             label="Int Subtract"
+                        />
+                    </div>
+
+                    <div>
+                        <Typography variant="h5" component="div" gutterBottom>
+                            Memory Instruction Latencies
+                        </Typography>
+
+                        <InstructionLatencyInput
+                            name="LoadLatency"
+                            value={context.instructionLatencies.LoadLatency}
+                            label="Load"
+                        />
+
+                        <InstructionLatencyInput
+                            name="StoreLatency"
+                            value={context.instructionLatencies.StoreLatency}
+                            label="Store"
                         />
                     </div>
                 </div>

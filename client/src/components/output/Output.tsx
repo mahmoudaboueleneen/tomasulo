@@ -12,6 +12,7 @@ const Output = () => {
     const [tomasuloInstances, setTomasuloInstances] = useState<any>([]);
     const [currentTomasuloInstance, setCurrentTomasuloInstance] = useState<any>({});
     const [cycleNumber, setCycleNumber] = useState(0);
+
     const { instructionLatencies, bufferSizes, reservationStationsSizes, instructions } = useContext(InputContext);
 
     useEffect(() => {
@@ -25,6 +26,7 @@ const Output = () => {
                 parseInstructions: parsedInstructions
             });
             setTomasuloInstances(response.data);
+
             setIsLoading(false);
         };
 

@@ -12,7 +12,11 @@ export const InputContext = createContext<InputContextValues>({
         FPSubtractLatency: 0,
         FPMultiplyLatency: 0,
         FPDivideLatency: 0,
-        IntSubtractLatency: 0
+        IntSubtractLatency: 0,
+        LoadLatency: 0,
+        StoreLatency: 0
+        // IntAddLatency: 1,
+        // BranchNotEqualZeroLatency: 1,
     },
     setInstructionLatencies: () => {},
 
@@ -49,7 +53,11 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
         FPSubtractLatency: 0,
         FPMultiplyLatency: 0,
         FPDivideLatency: 0,
-        IntSubtractLatency: 0
+        IntSubtractLatency: 0,
+        LoadLatency: 0,
+        StoreLatency: 0
+        // IntAddLatency: 1,
+        // BranchNotEqualZeroLatency: 1,
     });
 
     const [bufferSizes, setBufferSizes] = useState({

@@ -12,6 +12,14 @@ import DecodeHandler from "./DecodeHandler";
 import InstructionCache from "../../caches/InstructionCache";
 import Tag from "../../../types/Tag";
 import getIssuedInstructionDestination from "../../../utils/getIssuedInstructionDestination";
+import {
+    AddImmediateInstructions,
+    BranchInstructions,
+    FPAddInstructions,
+    FPSubInstructions,
+    MulInstructions,
+    SubImmediateInstructions
+} from "../../../constants/SupportedInstructions";
 
 class IssueHandler {
     private decodeHandler: DecodeHandler;
@@ -32,6 +40,8 @@ class IssueHandler {
     private FPMultiplyLatency: number;
     private FPDivideLatency: number;
     private IntSubtractLatency: number;
+    private LoadLatency: number;
+    private StoreLatency: number;
     private IntAddLatency: number;
     private BranchNotEqualZeroLatency: number;
 
@@ -50,6 +60,8 @@ class IssueHandler {
         FPMultiplyLatency: number,
         FPDivideLatency: number,
         IntSubtractLatency: number,
+        LoadLatency: number,
+        StoreLatency: number,
         IntAddLatency: number,
         BranchNotEqualZeroLatency: number
     ) {
@@ -69,6 +81,8 @@ class IssueHandler {
         this.FPMultiplyLatency = FPMultiplyLatency;
         this.FPDivideLatency = FPDivideLatency;
         this.IntSubtractLatency = IntSubtractLatency;
+        this.LoadLatency = LoadLatency;
+        this.StoreLatency = StoreLatency;
         this.IntAddLatency = IntAddLatency;
         this.BranchNotEqualZeroLatency = BranchNotEqualZeroLatency;
     }
@@ -119,8 +133,10 @@ class IssueHandler {
         }
 
         const storeInstruction = this.instructionDecoded as StoreType;
+
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
-        freeBuffer.setCyclesLeft(2); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
+
+        freeBuffer.setCyclesLeft(this.StoreLatency);
 
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
     }
@@ -139,12 +155,14 @@ class IssueHandler {
         }
 
         freeBuffer.loadInstructionIntoBuffer(loadInstruction.Address);
-        freeBuffer.setCyclesLeft(8); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
+
+        freeBuffer.setCyclesLeft(this.LoadLatency);
 
         this.registerFile.writeTag(loadInstruction.Dest, freeBuffer.tag);
 
         this.tagTimeMap.set(freeBuffer.tag, this.currentClockCycle);
     }
+
     private isAnyStoreIssuedForAddress(address: number) {
         return this.storeBuffers.some((buffer) => buffer.address === address && buffer.busy === 1);
     }
@@ -157,19 +175,13 @@ class IssueHandler {
         }
 
         const mulDivInstruction = this.instructionDecoded as RType;
+
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
 
-        freeStation.setCyclesLeft(4); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
-
-        switch (freeStation.op) {
-            case "DIV.D":
-                freeStation.setCyclesLeft(40);
-                break;
-            case "MUL.D":
-                freeStation.setCyclesLeft(10);
-                break;
-            default:
-                throw new Error("Invalid operation");
+        if (MulInstructions.has(mulDivInstruction.Op)) {
+            freeStation.setCyclesLeft(this.FPMultiplyLatency);
+        } else {
+            freeStation.setCyclesLeft(this.FPDivideLatency);
         }
 
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
@@ -188,7 +200,18 @@ class IssueHandler {
         }
 
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
-        freeStation.setCyclesLeft(1); // TODO: GET ACTUAL INITIAL CYCLES LEFT FROM INPUT LATENCY!!!!!!!!
+
+        if (FPAddInstructions.has(this.instructionDecoded!.Op)) {
+            freeStation.setCyclesLeft(this.FPAddLatency);
+        } else if (FPSubInstructions.has(this.instructionDecoded!.Op)) {
+            freeStation.setCyclesLeft(this.FPSubtractLatency);
+        } else if (AddImmediateInstructions.has(this.instructionDecoded!.Op)) {
+            freeStation.setCyclesLeft(this.IntAddLatency);
+        } else if (SubImmediateInstructions.has(this.instructionDecoded!.Op)) {
+            freeStation.setCyclesLeft(this.IntSubtractLatency);
+        } else if (BranchInstructions.has(this.instructionDecoded!.Op)) {
+            freeStation.setCyclesLeft(this.BranchNotEqualZeroLatency);
+        }
 
         this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
 
@@ -210,7 +233,9 @@ class IssueHandler {
         }
 
         const RInstruction = addSubInstruction as RType;
+
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", RInstruction.Src1);
+
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", RInstruction.Src2);
 
         this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);

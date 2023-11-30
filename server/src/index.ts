@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import Tomasulo from "./tumasolu_service/Tomasulo";
+import Tomasulo from "./main/Tomasulo";
 
 const app = express();
 const port = 3000;
@@ -19,8 +19,10 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
         FPMultiplyLatency,
         FPDivideLatency,
         IntSubtractLatency,
-        IntAddLatency,
-        BranchNotEqualZeroLatency
+        LoadLatency,
+        StoreLatency
+        // IntAddLatency,
+        // BranchNotEqualZeroLatency
     } = req.body.instructionLatencies;
 
     const { LoadBufferSize, StoreBufferSize } = req.body.bufferSizes;

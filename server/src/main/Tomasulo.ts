@@ -43,6 +43,8 @@ class Tomasulo {
     private FPMultiplyLatency: number;
     private FPDivideLatency: number;
     private IntSubtractLatency: number;
+    private LoadLatency: number;
+    private StoreLatency: number;
 
     // Assumed constant for our implementation and not taken as input from the user
     private IntAddLatency: number;
@@ -63,6 +65,8 @@ class Tomasulo {
         FPMultiplyLatency: number,
         FPDivideLatency: number,
         IntSubtractLatency: number,
+        LoadLatency: number,
+        StoreLatency: number,
         registerFile?: RegisterFile,
         dataCache?: DataCache
     ) {
@@ -110,6 +114,8 @@ class Tomasulo {
         this.FPMultiplyLatency = FPMultiplyLatency;
         this.FPDivideLatency = FPDivideLatency;
         this.IntSubtractLatency = IntSubtractLatency;
+        this.LoadLatency = LoadLatency;
+        this.StoreLatency = StoreLatency;
 
         this.IntAddLatency = 1;
         this.BranchNotEqualZeroLatency = 1;
@@ -249,6 +255,8 @@ class Tomasulo {
             this.FPMultiplyLatency,
             this.FPDivideLatency,
             this.IntSubtractLatency,
+            this.LoadLatency,
+            this.StoreLatency,
             this.IntAddLatency,
             this.BranchNotEqualZeroLatency
         ).handleIssuing();
