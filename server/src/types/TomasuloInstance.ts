@@ -7,7 +7,7 @@ import RegisterFile from "../tumasolu_service/misc/RegisterFile";
 import AddSubReservationStation from "../tumasolu_service/reservation_stations/AddSubReservationStation";
 import MulDivReservationStation from "../tumasolu_service/reservation_stations/MulDivReservationStation";
 
-type TomasuloElements = {
+type TomasuloInstance = {
     addSubReservationStations: AddSubReservationStation[];
     mulDivReservationStations: MulDivReservationStation[];
     loadBuffers: LoadBuffer[];
@@ -19,4 +19,4 @@ type TomasuloElements = {
     currentClockCycle: number;
 };
 
-export default TomasuloElements;
+export default TomasuloInstance;

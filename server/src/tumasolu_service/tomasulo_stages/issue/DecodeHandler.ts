@@ -5,13 +5,7 @@ import {
     BranchInstructions
 } from "../../../constants/SupportedInstructions";
 import { StoreBufferInstructions } from "../../../constants/SupportedInstructionsPerStationOrBuffer";
-import {
-    BranchType,
-    StoreType,
-    LoadType,
-    IType,
-    RType
-} from "../../../interfaces/decoded_instruction_operation_categories";
+import { BranchType, StoreType, LoadType, IType, RType } from "../../../interfaces/op_categories";
 import InstructionType from "../../../types/enums/InstructionType";
 import removeLastSymbol from "../../../utils/removeLastSymbol";
 import InstructionCache from "../../caches/InstructionCache";

@@ -1,4 +1,4 @@
-import { RType, IType, LoadType, StoreType, BranchType } from "../interfaces/decoded_instruction_operation_categories";
+import { RType, IType, LoadType, StoreType, BranchType } from "../interfaces/op_categories";
 
 type InstructionOperationCategory = RType | IType | LoadType | StoreType | BranchType;
 

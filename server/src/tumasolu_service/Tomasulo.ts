@@ -21,13 +21,11 @@ import TomasuloInstance from "../types/TomasuloInstance";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
-    private dataCache: DataCache;
     private instructionQueue: InstructionQueue;
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
     private loadBuffers: LoadBuffer[];
     private storeBuffers: StoreBuffer[];
-    private registerFile: RegisterFile;
     private commonDataBus: CommonDataBus;
     private currentClockCycle: number;
     private tagTimeMap: Map<Tag, number>;
@@ -38,7 +36,21 @@ class Tomasulo {
     private contentToBeWrittenToPCRegister: { content: number | null };
     private storeBufferToBeCleared: { tag: Tag };
     private BNEZStationToBeCleared: { tag: Tag };
-    private instructionLatencies: Map<string, number>;
+
+    // Taken as input from the user
+    private FPAddLatency: number;
+    private FPSubtractLatency: number;
+    private FPMultiplyLatency: number;
+    private FPDivideLatency: number;
+    private IntSubtractLatency: number;
+
+    // Assumed constant for our implementation and not taken as input from the user
+    private IntAddLatency: number;
+    private BranchNotEqualZeroLatency: number;
+
+    // May be preloaded by the user, otherwise initialized with default values
+    private dataCache: DataCache;
+    private registerFile: RegisterFile;
 
     constructor(
         instructions: string[],
@@ -46,12 +58,18 @@ class Tomasulo {
         mulDivReservationStationCount: number,
         loadBufferCount: number,
         storeBufferCount: number,
+        FPAddLatency: number,
+        FPSubtractLatency: number,
+        FPMultiplyLatency: number,
+        FPDivideLatency: number,
+        IntSubtractLatency: number,
         registerFile?: RegisterFile,
         dataCache?: DataCache
     ) {
-        this.registerFile = registerFile || new RegisterFile();
-        this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
         this.dataCache = dataCache || new DataCache();
+        this.registerFile = registerFile || new RegisterFile();
+
+        this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
         this.instructionQueue = new InstructionQueue();
 
         this.addSubReservationStations = Array(addSubReservationStationCount)
@@ -87,7 +105,14 @@ class Tomasulo {
         this.storeBufferToBeCleared = { tag: null };
         this.BNEZStationToBeCleared = { tag: null };
 
-        this.instructionLatencies = new Map().set("ADDI", 2).set("BNEZ", 1);
+        this.FPAddLatency = FPAddLatency;
+        this.FPSubtractLatency = FPSubtractLatency;
+        this.FPMultiplyLatency = FPMultiplyLatency;
+        this.FPDivideLatency = FPDivideLatency;
+        this.IntSubtractLatency = IntSubtractLatency;
+
+        this.IntAddLatency = 1;
+        this.BranchNotEqualZeroLatency = 1;
     }
 
     // TODO: Update the condition
@@ -218,7 +243,14 @@ class Tomasulo {
             this.registerFile,
             this.loadBuffers,
             this.addSubReservationStations,
-            this.mulDivReservationStations
+            this.mulDivReservationStations,
+            this.FPAddLatency,
+            this.FPSubtractLatency,
+            this.FPMultiplyLatency,
+            this.FPDivideLatency,
+            this.IntSubtractLatency,
+            this.IntAddLatency,
+            this.BranchNotEqualZeroLatency
         ).handleIssuing();
     }
 

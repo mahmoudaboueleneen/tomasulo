@@ -1,11 +1,5 @@
 import IssuedInstructionDestination from "../../../types/enums/IssuedInstructionDestination";
-import {
-    StoreType,
-    LoadType,
-    RType,
-    BranchType,
-    IType
-} from "../../../interfaces/decoded_instruction_operation_categories";
+import { StoreType, LoadType, RType, BranchType, IType } from "../../../interfaces/op_categories";
 import InstructionOperationCategory from "../../../types/InstructionOperationCategory";
 import getIssuedInstructionDestination from "../../../utils/getIssuedInstructionDestination";
 import InstructionQueue from "../../misc/InstructionQueue";
@@ -33,6 +27,14 @@ class IssueHandler {
     private addSubReservationStations: AddSubReservationStation[];
     private mulDivReservationStations: MulDivReservationStation[];
 
+    private FPAddLatency: number;
+    private FPSubtractLatency: number;
+    private FPMultiplyLatency: number;
+    private FPDivideLatency: number;
+    private IntSubtractLatency: number;
+    private IntAddLatency: number;
+    private BranchNotEqualZeroLatency: number;
+
     constructor(
         instructionCache: InstructionCache,
         instructionQueue: InstructionQueue,
@@ -42,7 +44,14 @@ class IssueHandler {
         registerFile: RegisterFile,
         loadBuffers: LoadBuffer[],
         addSubReservationStations: AddSubReservationStation[],
-        mulDivReservationStations: MulDivReservationStation[]
+        mulDivReservationStations: MulDivReservationStation[],
+        FPAddLatency: number,
+        FPSubtractLatency: number,
+        FPMultiplyLatency: number,
+        FPDivideLatency: number,
+        IntSubtractLatency: number,
+        IntAddLatency: number,
+        BranchNotEqualZeroLatency: number
     ) {
         this.decodeHandler = new DecodeHandler(instructionCache);
         this.instructionQueue = instructionQueue;
@@ -55,6 +64,13 @@ class IssueHandler {
         this.loadBuffers = loadBuffers;
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
+        this.FPAddLatency = FPAddLatency;
+        this.FPSubtractLatency = FPSubtractLatency;
+        this.FPMultiplyLatency = FPMultiplyLatency;
+        this.FPDivideLatency = FPDivideLatency;
+        this.IntSubtractLatency = IntSubtractLatency;
+        this.IntAddLatency = IntAddLatency;
+        this.BranchNotEqualZeroLatency = BranchNotEqualZeroLatency;
     }
 
     public handleIssuing() {

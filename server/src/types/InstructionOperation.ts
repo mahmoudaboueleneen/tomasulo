@@ -34,6 +34,3 @@ type InstructionOperation =
     | "BNEZ";
 
 export default InstructionOperation;
-
-// TODO: Add all possible instruction types (R, I , J)
-// Ensef elle foo2

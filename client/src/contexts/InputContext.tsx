@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { InputContextValues, InstructionLatencies } from "../interfaces";
 import Instructions from "../types/Instructions";
-import { inputFormSchema } from "../schemas";
+import InputFormSchema from "../schemas/InputFormSchema";
 
 export const InputContext = createContext<InputContextValues>({
     instructionLatencies: {
@@ -69,7 +69,7 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
         handleSubmit,
         formState: { errors }
     } = useForm({
-        resolver: zodResolver(inputFormSchema)
+        resolver: zodResolver(InputFormSchema)
     });
 
     const [instructionsFormat, setInstructionsFormat] = useState("file-upload");

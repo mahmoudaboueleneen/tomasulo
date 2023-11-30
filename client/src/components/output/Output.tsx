@@ -1,21 +1,41 @@
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ReusableTable from "./ReusableTable";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { InputContext } from "../../contexts/InputContext";
+import { parseInstructions } from "../../utils/Parsing";
 
 const Output = () => {
-    const [tomasuloInstances, setTomasuloInstances] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [tomasuloInstances, setTomasuloInstances] = useState<any>([]);
+    const [currentTomasuloInstance, setCurrentTomasuloInstance] = useState<any>({});
     const [cycleNumber, setCycleNumber] = useState(0);
+    const { instructionLatencies, bufferSizes, reservationStationsSizes, instructions } = useContext(InputContext);
 
     useEffect(() => {
         const fetchTomasuloData = async () => {
-            await axios.get("/api/input");
+            const parsedInstructions = await parseInstructions(instructions);
+
+            const response = await axios.post("http://localhost:3000/api/v1/tomasulo", {
+                instructionLatencies,
+                bufferSizes,
+                reservationStationsSizes,
+                parseInstructions: parsedInstructions
+            });
+            setTomasuloInstances(response.data);
+            setIsLoading(false);
         };
 
-        // fetchTomasuloData();
+        fetchTomasuloData();
     }, []);
+
+    useEffect(() => {
+        if (tomasuloInstances.length > 0) {
+            setCurrentTomasuloInstance(tomasuloInstances[cycleNumber]);
+        }
+    }, [cycleNumber, tomasuloInstances]);
 
     const incrementCycle = () => {
         setCycleNumber((prevCycleNumber) => prevCycleNumber + 1);
@@ -24,6 +44,21 @@ const Output = () => {
     const decrementCycle = () => {
         setCycleNumber((prevCycleNumber) => (prevCycleNumber > 0 ? prevCycleNumber - 1 : 0));
     };
+
+    if (isLoading) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh"
+                }}
+            >
+                <CircularProgress />
+            </Box>
+        );
+    }
 
     return (
         <>
@@ -45,44 +80,64 @@ const Output = () => {
                         <Box>
                             <Typography variant="body1">AddSub</Typography>
                             <ReusableTable
-                                columns={["Busy", "Op", "Vj", "Vk", "Qj", "Qk", "A"]}
-                                rows={[
-                                    { Busy: 1, Op: "ADD.D", Vj: 0, Vk: 0, Qj: 0, Qk: 0, A: 0 },
-                                    { Busy: 0, Op: "SUB.D", Vj: 0, Vk: 0, Qj: 0, Qk: 0, A: 0 }
-                                ]}
+                                columns={["Cycles Left", "Tag", "Busy", "Op", "Vj", "Vk", "Qj", "Qk", "A"]}
+                                rows={currentTomasuloInstance.addSubReservationStations.map((station: any) => ({
+                                    "Cycles Left": station.cyclesLeft,
+                                    Tag: station.tag,
+                                    Busy: station.busy,
+                                    Op: station.op,
+                                    Vj: station.vj,
+                                    Vk: station.vk,
+                                    Qj: station.qj,
+                                    Qk: station.qk,
+                                    A: station.A
+                                }))}
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="body1">MulDiv</Typography>
                             <ReusableTable
-                                columns={["Busy", "Op", "Vj", "Vk", "Qj", "Qk", "A"]}
-                                rows={[
-                                    { Busy: 1, Op: "MUL.D", Vj: 0, Vk: 0, Qj: 0, Qk: 0, A: 0 },
-                                    { Busy: 0, Op: "DIV.D", Vj: 0, Vk: 0, Qj: 0, Qk: 0, A: 0 }
-                                ]}
+                                columns={["Cycles Left", "Tag", "Busy", "Op", "Vj", "Vk", "Qj", "Qk", "A"]}
+                                rows={currentTomasuloInstance.mulDivReservationStations.map((station: any) => ({
+                                    "Cycles Left": station.cyclesLeft,
+                                    Tag: station.tag,
+                                    Busy: station.busy,
+                                    Op: station.op,
+                                    Vj: station.vj,
+                                    Vk: station.vk,
+                                    Qj: station.qj,
+                                    Qk: station.qk,
+                                    A: station.A
+                                }))}
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="body1">Load</Typography>
                             <ReusableTable
-                                columns={["Busy", "Address"]}
-                                rows={[
-                                    { Busy: 1, Address: 0 },
-                                    { Busy: 0, Address: 0 }
-                                ]}
+                                columns={["Cycles Left", "Tag", "Busy", "Address"]}
+                                rows={currentTomasuloInstance.loadBuffers.map((buffer: any) => ({
+                                    "Cycles Left": buffer.cyclesLeft,
+                                    Tag: buffer.tag,
+                                    Busy: buffer.busy,
+                                    Address: buffer.address
+                                }))}
                             />
                         </Box>
 
                         <Box>
                             <Typography variant="body1">Store</Typography>
                             <ReusableTable
-                                columns={["Busy", "Address", "V", "Q"]}
-                                rows={[
-                                    { Busy: 1, Address: 0, V: 0, Q: 0 },
-                                    { Busy: 0, Address: 0, V: 0, Q: 0 }
-                                ]}
+                                columns={["Cycles Left", "Tag", "Busy", "Address", "V", "Q"]}
+                                rows={currentTomasuloInstance.storeBuffers.map((buffer: any) => ({
+                                    "Cycles Left": buffer.cyclesLeft,
+                                    Tag: buffer.tag,
+                                    Busy: buffer.busy,
+                                    Address: buffer.address,
+                                    V: buffer.v,
+                                    Q: buffer.q
+                                }))}
                             />
                         </Box>
                     </Box>
@@ -91,14 +146,9 @@ const Output = () => {
                         <Typography variant="body1">Queue</Typography>
                         <ReusableTable
                             columns={["Instruction"]}
-                            rows={[
-                                { Instruction: "L.D F6, 34(R2)" },
-                                { Instruction: "L.D F2, 45(R3)" },
-                                { Instruction: "MUL.D F0, F2, F4" },
-                                { Instruction: "SUB.D F8, F6, F2" },
-                                { Instruction: "DIV.D F10, F0, F6" },
-                                { Instruction: "ADD.D F6, F8, F2" }
-                            ]}
+                            rows={currentTomasuloInstance.instructionQueue.instructions.map((instruction: any) => ({
+                                Instruction: instruction
+                            }))}
                         />
                     </Box>
 
@@ -106,10 +156,13 @@ const Output = () => {
                         <Typography variant="body1">Reg. File</Typography>
                         <ReusableTable
                             columns={["Register", "Qi", "Content"]}
-                            rows={[
-                                { Register: "R0", Qi: 0, Content: 0 },
-                                { Register: "F0", Qi: 0, Content: 0 }
-                            ]}
+                            rows={Array.from(currentTomasuloInstance.registerFile.getRegisters().entries()).map(
+                                ([register, info]: any) => ({
+                                    Register: register,
+                                    Qi: info.qi || 0,
+                                    Content: info.content
+                                })
+                            )}
                         />
                     </Box>
 
@@ -117,10 +170,12 @@ const Output = () => {
                         <Typography variant="body1">Data Cache</Typography>
                         <ReusableTable
                             columns={["Address", "Value"]}
-                            rows={[
-                                { Address: 0, Value: 0 },
-                                { Address: 1, Value: 0 }
-                            ]}
+                            rows={Array.from(currentTomasuloInstance.dataCache.data.entries()).map(
+                                ([address, value]: any) => ({
+                                    Address: address,
+                                    Value: value
+                                })
+                            )}
                         />
                     </Box>
                 </Box>
