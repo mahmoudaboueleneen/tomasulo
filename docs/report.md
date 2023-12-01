@@ -11,9 +11,23 @@ This report assumes the reader already has knowledge and understanding of the te
 ## Table of Contents
 
 -   [Architecture and Design](#architecture-and-design)
+    -   [The Tomasulo Algorithm](#the-tomasulo-algorithm)
+    -   [The Tomasulo Architecture](#the-tomasulo-architecture)
+    -   [Application Data Flow](#application-data-flow)
+    -   [OO Design](#oo-design)
+    -   [Technology Stack](#technology-stack)
 -   [Implementation](#implementation)
+    -   [Overview](#overview)
+    -   [Backend](#backend)
+    -   [Frontend](#frontend)
+    -   [Code Structure](#code-structure)
+    -   [Workflow](#workflow)
 -   [Testing](#testing)
+    -   [Running the Code](#running-the-code)
+    -   [Test Cases](#test-cases)
 -   [Appendix](#appendix)
+    -   [The N-1 Bug](#the-n-1-bug)
+    -   [To Simulate or Not to Simulate](#to-simulate-or-not-to-simulate)
 
 ## Architecture and Design
 
