@@ -35,6 +35,12 @@ export const InputContext = createContext<InputContextValues>({
     instructions: "",
     setInstructions: () => {},
 
+    preloadedRegisters: null,
+    setPreloadedRegisters: () => {},
+
+    preloadedMemoryLocations: null,
+    setPreloadedMemoryLocations: () => {},
+
     formActions: null,
 
     instructionsFormat: "file-upload",

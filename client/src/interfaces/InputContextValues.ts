@@ -2,6 +2,8 @@ import { Control, FieldErrors, FieldValues, UseFormHandleSubmit } from "react-ho
 
 import { BufferSizes, InstructionLatencies, ReservationStationsSizes } from ".";
 import Instructions from "../types/Instructions";
+import Register from "./Register";
+import MemoryLocation from "./MemoryLocation";
 
 interface InputContextValues {
     instructionLatencies: InstructionLatencies;
@@ -15,6 +17,12 @@ interface InputContextValues {
 
     instructions: Instructions | null | undefined;
     setInstructions: React.Dispatch<React.SetStateAction<Instructions | null | undefined>>;
+
+    preloadedRegisters: Register[] | null | undefined;
+    setPreloadedRegisters: React.Dispatch<React.SetStateAction<Register[]>>;
+
+    preloadedMemoryLocations: MemoryLocation[] | null | undefined;
+    setPreloadedMemoryLocations: React.Dispatch<React.SetStateAction<MemoryLocation[]>>;
 
     formActions: {
         control: Control<FieldValues>;
