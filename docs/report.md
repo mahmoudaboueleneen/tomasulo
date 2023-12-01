@@ -103,9 +103,50 @@ Our frontend was fairly straightforward to implement. Check our main `README.md`
 
 Our codebase is split into two main folders (excluding the docs folder and any other non logic-related folders), those being `client` and `server`. These two would be deployed separately but in our case, we just run in the localhost, so we can comfortably keep them both under the same repository and run each of them on their port on the localhost and have them communicate via HTTP normally.
 
+Here is our project's file tree with some omissions for simplification.
+
 ```
-TODO:
-ADD THE FOLDER STRUCTURE
+.
+├───.vscode
+├───client
+│   ├───sample_programs
+│   └───src
+│       ├───components
+│       │   ├───input
+|       |   │   └───  <----------------- Input components
+│       │   └───output
+|       |       └───  <----------------- Output components
+│       ├───constants
+│       ├───contexts
+│       ├───interfaces
+│       ├───schemas
+│       ├───types
+│       └───utils
+├───docs
+└───server
+    └───src
+        ├───constants
+        ├───interfaces
+        ├───main
+        │   ├───arithmetic_units
+        │   ├───buffers
+        │   ├───caches
+        │   ├───reservation_stations
+        │   └───tomasulo_stages
+        │       ├───clear <----------------- Separated for separation of concerns
+        │       ├───execute <----------------- Main pipeline stage
+        │       ├───fetch <----------------- Main pipeline stage
+        │       ├───issue <----------------- Main pipeline stage
+        │       ├───update <----------------- Separated for separation of concerns
+        │       ├───write <----------------- Main pipeline stage
+        │       ├───CommonDataBus.ts
+        │       ├───InstructionQueue.ts
+        │       ├───RegisterFile.ts
+        │       └───Tomasulo.ts <----------------- Main class holding the main program loop
+        ├───types
+        │   └───enums
+        ├───utils
+        └───index.ts <----------------- Server file
 ```
 
 ### Workflow
