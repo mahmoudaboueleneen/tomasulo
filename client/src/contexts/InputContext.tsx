@@ -5,6 +5,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { InputContextValues, InstructionLatencies } from "../interfaces";
 import Instructions from "../types/Instructions";
 import InputFormSchema from "../schemas/InputFormSchema";
+import Register from "../interfaces/Register";
+import MemoryLocation from "../interfaces/MemoryLocation";
 
 export const InputContext = createContext<InputContextValues>({
     instructionLatencies: {
@@ -78,6 +80,10 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
 
     const [instructions, setInstructions] = useState<Instructions | null>();
 
+    const [preloadedRegisters, setPreloadedRegisters] = useState<Register[] | null>(null);
+
+    const [preloadedMemoryLocations, setPreloadedMemoryLocations] = useState<MemoryLocation[] | null>(null);
+
     const {
         control,
         handleSubmit,
@@ -101,6 +107,12 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
 
         instructions,
         setInstructions,
+
+        preloadedRegisters,
+        setPreloadedRegisters,
+
+        preloadedMemoryLocations,
+        setPreloadedMemoryLocations,
 
         formActions: {
             control,

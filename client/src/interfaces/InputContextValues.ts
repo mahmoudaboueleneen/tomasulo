@@ -18,11 +18,11 @@ interface InputContextValues {
     instructions: Instructions | null | undefined;
     setInstructions: React.Dispatch<React.SetStateAction<Instructions | null | undefined>>;
 
-    preloadedRegisters: Register[] | null | undefined;
-    setPreloadedRegisters: React.Dispatch<React.SetStateAction<Register[]>>;
+    preloadedRegisters: Register[] | null;
+    setPreloadedRegisters: React.Dispatch<React.SetStateAction<Register[] | null>>;
 
-    preloadedMemoryLocations: MemoryLocation[] | null | undefined;
-    setPreloadedMemoryLocations: React.Dispatch<React.SetStateAction<MemoryLocation[]>>;
+    preloadedMemoryLocations: MemoryLocation[] | null;
+    setPreloadedMemoryLocations: React.Dispatch<React.SetStateAction<MemoryLocation[] | null>>;
 
     formActions: {
         control: Control<FieldValues>;
