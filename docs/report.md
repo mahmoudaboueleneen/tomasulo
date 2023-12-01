@@ -69,7 +69,7 @@ We implemented our frontend using React.
 
 We have two pages, or rather two "big" components that you can consider to represent pages, one for getting the inputs and the other for displaying the outputs.
 
-We did not need to use any routing, as we only needed the root `\` route in which we initially rendered the inputs page, and then rendered the outputs page in the same route after the inputs are submitted.
+We did not need to use any routing, as we only needed the root route `/` in which we initially rendered the inputs page, and then rendered the outputs page in the same route after the inputs are submitted.
 
 Our client-side data was passed around using React Context, and validated using react-hook-form and zod. Instructions are MIPS x64 instructions and are either inputted in a text area or in a uploaded in a .txt file, and in either way they are parsed to an array of instructions.
 
