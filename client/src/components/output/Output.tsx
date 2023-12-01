@@ -151,38 +151,50 @@ const Output = () => {
                         <Typography variant="body1">Queue</Typography>
                         <ReusableTable
                             columns={["Instruction"]}
-                            rows={currentTomasuloInstance.instructionQueue.instructions.map((instruction: any) => ({
+                            rows={currentTomasuloInstance.instructionQueue.map((instruction: any) => ({
                                 Instruction: instruction
                             }))}
                         />
                     </Box>
 
-                    {/* <Box>
-                        <Typography variant="body1">Reg. File</Typography>
+                    <Box>
+                        <Typography variant="body1">Int Registers</Typography>
                         <ReusableTable
                             columns={["Register", "Qi", "Content"]}
-                            rows={Array.from(currentTomasuloInstance.registerFile.getRegisters().entries()).map(
-                                ([register, info]: any) => ({
+                            rows={Object.entries(currentTomasuloInstance.registerFile)
+                                .filter(([register]) => register.startsWith("R"))
+                                .map(([register, info]: any) => ({
                                     Register: register,
                                     Qi: info.qi || 0,
                                     Content: info.content
-                                })
-                            )}
+                                }))}
                         />
-                    </Box> */}
+                    </Box>
 
-                    {/* <Box>
+                    <Box>
+                        <Typography variant="body1">FP Registers</Typography>
+                        <ReusableTable
+                            columns={["Register", "Qi", "Content"]}
+                            rows={Object.entries(currentTomasuloInstance.registerFile)
+                                .filter(([register]) => register.startsWith("F"))
+                                .map(([register, info]: any) => ({
+                                    Register: register,
+                                    Qi: info.qi || 0,
+                                    Content: info.content
+                                }))}
+                        />
+                    </Box>
+
+                    <Box>
                         <Typography variant="body1">Data Cache</Typography>
                         <ReusableTable
                             columns={["Address", "Value"]}
-                            rows={Array.from(currentTomasuloInstance.dataCache.data.entries()).map(
-                                ([address, value]: any) => ({
-                                    Address: address,
-                                    Value: value
-                                })
-                            )}
+                            rows={Array.from(currentTomasuloInstance.dataCache).map(([address, value]: any) => ({
+                                Address: address,
+                                Value: value
+                            }))}
                         />
-                    </Box> */}
+                    </Box>
                 </Box>
             </Box>
         </>

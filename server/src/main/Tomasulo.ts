@@ -177,6 +177,11 @@ class Tomasulo {
                     console.log("   ", key, value);
                 }
             });
+            console.log("\n");
+            console.log("[+] Data Cache \n");
+            this.dataCache.getData().forEach((value, key) => {
+                console.log("   ", key, value);
+            });
             console.log("\n\n");
         }
 
