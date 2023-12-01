@@ -126,7 +126,7 @@ Here is our project's file tree with some omissions for simplification.
     └───src
         ├───constants
         ├───interfaces
-        ├───main
+        ├───main <----------------- Main backend logic, containing all the classes
         │   ├───arithmetic_units
         │   │   ├───AluElement.ts
         │   │   ├───FPAdder.ts
