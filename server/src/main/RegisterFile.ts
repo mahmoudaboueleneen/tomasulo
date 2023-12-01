@@ -50,6 +50,9 @@ class RegisterFile {
 
     preloadRegisters(preloadedRegisters: any) {
         preloadedRegisters.forEach((register: any) => {
+            if (register.name === "R0") {
+                throw new Error("Cannot set R0 as it has a constant value of 0");
+            }
             this.registers.set(register.name, {
                 content: register.value,
                 qi: 0
@@ -66,6 +69,9 @@ class RegisterFile {
     }
 
     writeContent(register: string, content: number): void {
+        if (register === "R0") {
+            throw new Error("Cannot set R0 as it has a constant value of 0");
+        }
         this.registers.get(register)!.content = content;
     }
 

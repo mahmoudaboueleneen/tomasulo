@@ -1,11 +1,13 @@
-import LoadBuffer from "../tumasolu_service/buffers/LoadBuffer";
-import StoreBuffer from "../tumasolu_service/buffers/StoreBuffer";
-import DataCache from "../tumasolu_service/caches/DataCache";
-import InstructionCache from "../tumasolu_service/caches/InstructionCache";
-import InstructionQueue from "../tumasolu_service/misc/InstructionQueue";
-import RegisterFile from "../tumasolu_service/misc/RegisterFile";
-import AddSubReservationStation from "../tumasolu_service/reservation_stations/AddSubReservationStation";
-import MulDivReservationStation from "../tumasolu_service/reservation_stations/MulDivReservationStation";
+import InstructionQueue from "../main/InstructionQueue";
+import RegisterFile from "../main/RegisterFile";
+import LoadBuffer from "../main/buffers/LoadBuffer";
+import StoreBuffer from "../main/buffers/StoreBuffer";
+import DataCache from "../main/caches/DataCache";
+import InstructionCache from "../main/caches/InstructionCache";
+import AddSubReservationStation from "../main/reservation_stations/AddSubReservationStation";
+import MulDivReservationStation from "../main/reservation_stations/MulDivReservationStation";
+import DataCacheCellInstance from "./DataCacheCellInstance";
+import RegisterFileCellInstance from "./RegisterFileCellInstance";
 
 type TomasuloInstance = {
     addSubReservationStations: AddSubReservationStation[];
@@ -13,9 +15,9 @@ type TomasuloInstance = {
     loadBuffers: LoadBuffer[];
     storeBuffers: StoreBuffer[];
     instructionCache: InstructionCache;
-    dataCache: DataCache;
+    dataCache: DataCacheCellInstance[];
     instructionQueue: InstructionQueue;
-    registerFile: RegisterFile;
+    registerFile: RegisterFileCellInstance[];
     currentClockCycle: number;
 };
 

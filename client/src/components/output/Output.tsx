@@ -43,9 +43,31 @@ const Output = () => {
         fetchTomasuloData();
     }, []);
 
+    useEffect(() => {
+        const handleKeyUp = (event: KeyboardEvent) => {
+            switch (event.key) {
+                case "ArrowLeft":
+                    decrementCycle();
+                    break;
+                case "ArrowRight":
+                    incrementCycle();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        window.addEventListener("keyup", handleKeyUp);
+
+        return () => {
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
+
     const incrementCycle = () => {
         setCycleNumber((prevCycleNumber) => {
-            const newCycleNumber = prevCycleNumber + 1;
+            const newCycleNumber =
+                prevCycleNumber + 1 < tomasuloInstances.length ? prevCycleNumber + 1 : prevCycleNumber;
             setCurrentTomasuloInstance(tomasuloInstances[newCycleNumber]);
             return newCycleNumber;
         });
@@ -160,7 +182,7 @@ const Output = () => {
                         <Typography variant="body1">Queue</Typography>
                         <ReusableTable
                             columns={["Instruction"]}
-                            rows={currentTomasuloInstance.instructionQueue.map((instruction: any) => ({
+                            rows={currentTomasuloInstance.instructionQueue.instructions.map((instruction: any) => ({
                                 Instruction: instruction
                             }))}
                         />
@@ -170,12 +192,12 @@ const Output = () => {
                         <Typography variant="body1">Int Registers</Typography>
                         <ReusableTable
                             columns={["Register", "Qi", "Content"]}
-                            rows={Object.entries(currentTomasuloInstance.registerFile)
-                                .filter(([register]) => register.startsWith("R"))
-                                .map(([register, info]: any) => ({
-                                    Register: register,
-                                    Qi: info.qi || 0,
-                                    Content: info.content
+                            rows={currentTomasuloInstance.registerFile
+                                .filter((register: any) => register.name.startsWith("R"))
+                                .map(({ name, qi, value }: any) => ({
+                                    Register: name,
+                                    Qi: qi || 0,
+                                    Content: value
                                 }))}
                         />
                     </Box>
@@ -184,12 +206,12 @@ const Output = () => {
                         <Typography variant="body1">FP Registers</Typography>
                         <ReusableTable
                             columns={["Register", "Qi", "Content"]}
-                            rows={Object.entries(currentTomasuloInstance.registerFile)
-                                .filter(([register]) => register.startsWith("F"))
-                                .map(([register, info]: any) => ({
-                                    Register: register,
-                                    Qi: info.qi || 0,
-                                    Content: info.content
+                            rows={currentTomasuloInstance.registerFile
+                                .filter((register: any) => register.name.startsWith("F"))
+                                .map(({ name, qi, value }: any) => ({
+                                    Register: name,
+                                    Qi: qi || 0,
+                                    Content: value
                                 }))}
                         />
                     </Box>
@@ -198,7 +220,7 @@ const Output = () => {
                         <Typography variant="body1">Data Cache</Typography>
                         <ReusableTable
                             columns={["Address", "Value"]}
-                            rows={Array.from(currentTomasuloInstance.dataCache).map(([address, value]: any) => ({
+                            rows={currentTomasuloInstance.dataCache.map(({ address, value }: any) => ({
                                 Address: address,
                                 Value: value
                             }))}

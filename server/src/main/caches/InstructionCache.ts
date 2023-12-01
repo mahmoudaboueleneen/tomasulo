@@ -54,6 +54,9 @@ class InstructionCache {
     }
 
     fetch(): string | null {
+        if (!this.hasNonFetchedInstructions()) {
+            return null;
+        }
         return this.instructions[this.PCRegister.content++] || null;
     }
 }

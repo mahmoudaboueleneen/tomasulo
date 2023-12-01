@@ -18,6 +18,7 @@ import FetchHandler from "./tomasulo_stages/fetch/FetchHandler";
 import Tag from "../types/Tag";
 import TagValuePair from "../interfaces/TagValuePair";
 import TomasuloInstance from "../types/TomasuloInstance";
+import { mapToDataArray, mapToRegisterArray } from "../utils/jsonMapHandler";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -130,19 +131,11 @@ class Tomasulo {
     // TODO: Update the condition
     public runTomasuloAlgorithm(): TomasuloInstance[] {
         const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [this.createTomasuloInstance()];
-        // this.instructionCache.hasNonFetchedInstructions() ||
-        //     !this.instructionQueue.isEmpty() ||
-        //     this.existRunningStationOrBuffer() ||
-        //     this.tagsToBeCleared.length > 0 ||
-        //     this.contentToBeWrittenToPCRegister.content ||
-        //     this.existWritesAwaitingWriting
-        let i = 0;
 
-        console.log("InstructionCache", this.instructionCache.codeLabelAddressPairs);
-
-        while (i++ < 60) {
-            console.log("==================================================================================== \n");
-            console.log("[+] Cycle Number", this.currentClockCycle);
+        for (let i = 0; this.toKeepRunning(); i++) {
+            if (i === 50) {
+                break;
+            }
 
             this.write();
             this.execute();
@@ -150,62 +143,44 @@ class Tomasulo {
             this.fetch();
             this.update();
             this.clear();
-
             this.currentClockCycle++;
 
             tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
-
-            console.log("[+] PC Register", this.registerFile.getPCRegister(), "\n");
-            console.log("[+] Instruction Queue", this.instructionQueue, "\n");
-            console.log(
-                "[+] Busy AddSub Stations",
-                this.addSubReservationStations.filter((station) => station.busy === 1),
-                "\n"
-            );
-            console.log(
-                "[+] Busy MulDiv Stations",
-                this.mulDivReservationStations.filter((station) => station.busy === 1),
-                "\n"
-            );
-            console.log(
-                "[+] Busy Load Buffers",
-                this.loadBuffers.filter((buffer) => buffer.busy === 1),
-                "\n"
-            );
-            console.log(
-                "[+] Busy Store Buffers",
-                this.storeBuffers.filter((buffer) => buffer.busy === 1),
-                "\n"
-            );
-            console.log("[+] Register File \n");
-            this.registerFile.getRegisters().forEach((value, key) => {
-                if (value.qi !== 0 || value.content !== 0) {
-                    console.log("   ", key, value);
-                }
-            });
-            console.log("\n");
-            console.log("[+] Data Cache \n");
-            this.dataCache.getData().forEach((value, key) => {
-                console.log("   ", key, value);
-            });
-            console.log("\n\n");
         }
-
         return tomasuloInstancesAtEachCycle;
     }
 
+    private toKeepRunning() {
+        // console.log("instructions all fetched" + this.instructionCache.hasNonFetchedInstructions());
+        // console.log("instruction queue is not empty" + !this.instructionQueue.isEmpty());
+        // console.log("running stations or buffers exist" + this.existRunningStationOrBuffer());
+        // console.log("tags to be cleared exist" + (this.tagsToBeCleared.length > 0));
+        // console.log("content to be written to PC register exists" + this.contentToBeWrittenToPCRegister.content);
+
+        return (
+            this.instructionCache.hasNonFetchedInstructions() ||
+            !this.instructionQueue.isEmpty() ||
+            this.existRunningStationOrBuffer() ||
+            this.tagsToBeCleared.length > 0 ||
+            this.contentToBeWrittenToPCRegister.content ||
+            this.existWritesAwaitingWriting
+        );
+    }
+
     private createTomasuloInstance(): TomasuloInstance {
-        return {
-            addSubReservationStations: this.addSubReservationStations.map((station) => station.clone()),
-            mulDivReservationStations: this.mulDivReservationStations.map((station) => station.clone()),
-            loadBuffers: this.loadBuffers.map((buffer) => buffer.clone()),
-            storeBuffers: this.storeBuffers.map((buffer) => buffer.clone()),
-            instructionCache: this.instructionCache.clone(),
-            dataCache: this.dataCache.clone().getData(),
-            instructionQueue: this.instructionQueue.clone().getInstructions(),
-            registerFile: this.registerFile.clone().getRegisters(),
-            currentClockCycle: this.currentClockCycle
-        };
+        return JSON.parse(
+            JSON.stringify({
+                addSubReservationStations: this.addSubReservationStations,
+                mulDivReservationStations: this.mulDivReservationStations,
+                loadBuffers: this.loadBuffers,
+                storeBuffers: this.storeBuffers,
+                instructionCache: this.instructionCache,
+                dataCache: mapToDataArray(this.dataCache),
+                instructionQueue: this.instructionQueue,
+                registerFile: mapToRegisterArray(this.registerFile),
+                currentClockCycle: this.currentClockCycle
+            })
+        );
     }
 
     private existRunningStationOrBuffer(): boolean {

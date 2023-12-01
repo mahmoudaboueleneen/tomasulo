@@ -51,7 +51,12 @@ abstract class ReservationStation implements Executable {
     }
 
     public canExecute() {
-        return !this.isFinished() && this.busy === 1 && this.qj === 0 && this.qk === 0;
+        return (
+            !this.isFinished() &&
+            this.busy === 1 &&
+            (this.qj === 0 || this.qj === null) &&
+            (this.qk === 0 || this.qk === null)
+        );
     }
 
     public isFinished() {
@@ -65,6 +70,7 @@ abstract class ReservationStation implements Executable {
         this.vk = null;
         this.qj = null;
         this.qk = null;
+        this.A = null;
     }
 
     public update(tag: Tag, value: number) {

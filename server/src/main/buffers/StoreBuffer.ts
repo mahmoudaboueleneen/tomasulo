@@ -25,7 +25,7 @@ class StoreBuffer extends Buffer {
     }
 
     public canExecute(): boolean {
-        return super.canExecute() && this.q === 0 && this.v !== null;
+        return super.canExecute() && (this.q === 0 || this.q === null) && this.v !== null;
     }
 
     public clear() {

@@ -80,13 +80,22 @@ class ExecuteHandler {
     private handleRunningInstructionsInStations(stations: ReservationStation[], AluElements: AluElement[]) {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
-
+            if (station.op === "SUBI") {
+                console.log("Here we go....");
+                console.log(station);
+            }
             if (station.canExecute()) {
+                if (station.op === "SUBI") console.log("Going as expected aho");
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
 
                 if (station.isFinished()) {
+                    if (station.op === "SUBI") console.log("Going as expected tany aho");
+
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
+                    if (computedValue === 8) {
+                        if (station.op === "SUBI") console.log("And computed the correct value as expected aho");
+                    }
 
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
@@ -95,6 +104,7 @@ class ExecuteHandler {
 
                         this.BNEZStationToBeCleared.tag = station.tag;
                     } else {
+                        if (station.op === "SUBI") console.log("Kollo tmam. We have to dig deeper");
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
                     }
                     stationAluElement.setBusy(0);

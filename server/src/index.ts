@@ -57,7 +57,7 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
         console.info("Finished running tomasulo algorithm.");
 
         res.status(200).json({
-            tomasuloInstances: tomasuloInstances
+            tomasuloInstances
         });
     } catch (error) {
         res.status(500).json({ error: (error as Error).toString() });
