@@ -35,9 +35,107 @@ This chapter documents an overview of our software's architecture and design.
 
 ### The Tomasulo Algorithm
 
-Due to the heavy dependencies of the features of this program on each other, and how almost every component needs data to flow to it from another component, and the absence of time to draw system diagrams and strictly define how data would flow throughout the system, we decided to start writing down a text description of the tomasulo algorithm and dumped all the details we could think of and the challenges that we would face during implementation and our (possible?) solutions to them. You can find this description in the `algorithm.txt` file under this directory.
+Due to the heavy dependencies of the features of this program on each other, and how almost every component needs data to flow to it from another component, and the absence of time to draw system diagrams and strictly define how data would flow throughout the system, we decided to start writing down a text description of the tomasulo algorithm and dumped all the details we could think of and the challenges that we would face during implementation and our (possible?) solutions to them.
 
-We have also made a list of assumptions with regards to the algorithm, hardware architecture, instruction syntax, and more. You can find these assumptions in the `assumptions.md` file under this directory.
+Here is our written draft of the algorithm. (Please note that this was built upon and further advanced and any other details not mentioned here have been taken into consideration in the actual implementation)
+
+```
+Clock Cycle:
+------------
+-1. Read instructions and load them into Instruction Cache.
+
+
+0. Fetch instruction from Instruction Cache into Instruction Queue.
+
+
+1. (Issue & Read Operands)
+
+   Before Issuing:
+      Decode Instruction.
+      If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
+      && In case of Load there is no Store manipulating the same address in the Buffers
+
+      Then,
+       - Issue Instruction to its Buffer/Station,
+       - Set the Buffer/Station to busy,
+       - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the
+         tag of the Buffer/Station that the Instruction has been added to,
+       - Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
+
+   If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers)
+      Check Operand Registers in the Register File:
+      If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk.
+      Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
+
+
+2. (Execute)
+
+   For each Station, if it has Qj and Qk both equal 0, Execute (Decrement Cycles Left).
+   For each Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
+   Each instruction keeps executing according to its required number of cycles to finish.
+   If it's a Store, wait for the value to be stored to be ready before Executing.
+
+   We will use an array of finishedInstructions which we will add an Object {tag, value} of the finished instruction to,
+   to later in the next stage be used to select one instruction from (based on FIFO) to write to the bus.
+   Thus, this array will be sorted based on the clock cycle number that the instruction was issued in.
+
+   So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions
+   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus.
+
+
+3. (Write Result)
+
+   If Finished Instructions Array is empty,
+      Return.
+
+   Remove an instruction {tag, value} from the Finished Instructions Array
+   And Write that instruction's result to the Bus.
+
+   Find the station/buffer that has the same tag as that on the bus and clear it and
+   unset the station/buffer busy status and for load/store unset the memory busy status as well.
+
+   For each Station
+      If the Station has Qj equals the tag published on the bus
+         Set Qj to 0.
+         Set Vj to the value from the bus.
+      If the Station has Qk equals the tag published on the bus
+         Set Qk to 0.
+         Set Vk to the value from the bus.
+
+   For each StoreBuffer
+      If the StoreBuffer has Q equals the tag published on the bus
+         Set Q to 0.
+         Set V to the value from the bus.
+
+   For each Register in the RegisterFile
+      If the Register's Qi equals the tag published on the bus
+         Set Qi to 0.
+         Set content to the value from the bus.
+
+   (Note: Load Buffers don't need updating as they only have effective address)
+
+=================================================================
+vars to track: clockCycleNumber, cyclesLeft (for each instruction)
+
+```
+
+We have also made a list of assumptions with regards to the algorithm, hardware architecture, instruction syntax, and more.
+
+Here are our assumptions.
+
+```
+- For adding a label, the label must end with a ':' or ',' and when executing a branch instruction to jump to this label, the branch instruction should have the label without this last character. For example:
+
+LOOP: L.D F1, 0
+      BNEZ R1, LOOP
+
+
+- Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value (e.g. L.D F2, 100 ... NOT THIS ... L.D F2, 32(R2) )
+
+- In an instruction, fields following the operation field are separated from each other by a comma and a space. (e.g. R2, R3)
+
+- If two instructions finish at the same time and want to write to the bus, we pick the one which came first. (FIFO)
+```
 
 ### The Tomasulo Architecture
 
@@ -111,7 +209,7 @@ We did not need to use any routing, as we only needed the root route `/` in whic
 
 Our client-side data was passed around using React Context, and validated using react-hook-form and zod. Instructions are MIPS x64 instructions and are either inputted in a text area or in a uploaded in a .txt file, and in either way they are parsed to an array of instructions.
 
-Our frontend was fairly straightforward to implement. Check our main `README.md` file for a demo to see it in action!
+Overall, our frontend was fairly straightforward to implement, and most of the complexity was in the backend.
 
 ### Code Structure
 
