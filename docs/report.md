@@ -129,16 +129,34 @@ Here is our project's file tree with some omissions for simplification.
         ├───interfaces
         ├───main
         │   ├───arithmetic_units
+        │   │   ├───AluElement.ts
+        │   │   ├───FPAdder.ts
+        │   │   └───FPMultiplier.ts
         │   ├───buffers
+        │   │   ├───Buffer.ts
+        │   │   ├───LoadBuffer.ts
+        │   │   └───StoreBuffer.ts
         │   ├───caches
+        │   │   ├───DataCache.ts
+        │   │   └───InstructionCache.ts
         │   ├───reservation_stations
-        │   └───tomasulo_stages
-        │       ├───clear <----------------- Separated for separation of concerns
-        │       ├───execute <----------------- Main pipeline stage
-        │       ├───fetch <----------------- Main pipeline stage
-        │       ├───issue <----------------- Main pipeline stage
-        │       ├───update <----------------- Separated for separation of concerns
-        │       ├───write <----------------- Main pipeline stage
+        │   │   ├───AddSubReservationStation.ts
+        │   │   ├───MulDivReservationStation.ts
+        │   │   └───ReservationStation.ts
+        │   └───tomasulo_stages <----------------- Main pipeline stages along with other minor helping stages
+        │       ├───clear
+        │       │   └───ClearHandler.ts
+        │       ├───execute
+        │       │   └───ExecuteHandler.ts
+        │       ├───fetch
+        │       │   └───FetchHandler.ts
+        │       ├───issue
+        │       │   ├───DecodeHandler.ts
+        │       │   └───IssueHandler.ts
+        │       ├───update
+        │       │   └───UpdateHandler.ts
+        │       ├───write
+        │       │   └───WriteHandler.ts
         │       ├───CommonDataBus.ts
         │       ├───InstructionQueue.ts
         │       ├───RegisterFile.ts
