@@ -27,39 +27,37 @@ The client then takes over with the simulation, allowing the user to cycle throu
 
 We have decided to use Object Orientation (OO) for our backend logic. We use classes to simulate the hardware components, and interfaces and abstract classes to better organize code dependencies. Here are some of our classes:
 
--   ReservationStation (Abstract Class)
--   AddSubReservationStation (Concrete Class)
--   Buffer (Abstract Class)
--   LoadBuffer (Concrete Class)
--   Executable (Interface)
--   DataCache
--   InstructionCache
--   InstructionQueue
--   CommonDataBus
--   RegisterFile
+-   `ReservationStation` (Abstract Class)
+-   `AddSubReservationStation` (Concrete Class)
+-   `Buffer` (Abstract Class)
+-   `LoadBuffer` (Concrete Class)
+-   `Executable` (Interface)
+-   `DataCache`
+-   `InstructionCache`
+-   `InstructionQueue`
+-   `CommonDataBus`
+-   `RegisterFile`
 
 We also had Handler classes to carry out the logic of each stage in the Tomasulo pipeline. Here are some of those classes:
 
--   FetchHandler
--   IssueHandler
--   ExecuteHandler
--   WriteHandler
+-   `FetchHandler`
+-   `IssueHandler`
+-   `ExecuteHandler`
+-   `WriteHandler`
 
-Finally, our Tomasulo class, which is the main class, contains our program's main loop that runs until the program ends, and uses the other classes to run the full pipeline stages every cycle.
+Finally, our `Tomasulo` class, which is the main class, contains our program's main loop that runs until the input program instructions end, and uses the other classes to run the full pipeline stages every cycle.
 
 ### Technology Stack
 
-Our language of choice was either going to be Java or TypeScript due to our familiarity with both, but since we knew we would develop a GUI, we opted for TypeScript so we can use one language for the frontend and the backend.
+Our language of choice was either going to be Java or TypeScript due to our familiarity with both and the availability of OO features in both, but since we knew we would develop a GUI, we opted for TypeScript so we can use one language for the frontend and the backend.
 
-We also knew TypeScript had OO features so that made the decision possible.
-
-We used React with Typescript and MUI styled components to create our GUI. Other than that, we did not use any other fancy technologies.
+We used React with Typescript and Material UI (MUI) styled components to create our GUI. Other than that, we did not use any other fancy technologies.
 
 ## Implementation
 
 Initially, we implemented a simple page for users to input the program configurations, and then we directed all of our focus to the backend. After we were done implementing the backend and testing it manually in the CLI (more on testing in the `Testing` chapter), we proceeded to implement our GUI to display the output and refined the input page.
 
-### Backend
+## Backend
 
 Due to the tight coupling of the features of this program, and almost every component needing data to flow to it from another component, and the absence of time to draw system diagrams and strictly define how data would flow in the system, we decided to start writing down a text description of the tomasulo algorithm and dumped all the details we could think of and the challenges that we would face during implementing it and our solutions to them. You can find this description in the `algorithm.txt` file in this directory.
 
@@ -67,9 +65,19 @@ We then proceeded to do group coding sessions as the tasks could not be split ac
 
 ### Frontend
 
+We implemented our frontend using React.
+
+We have two pages, or rather two "big" components that you can consider to represent pages, one for getting the inputs and the other for displaying the outputs.
+
+We did not need to use any routing, as we only needed the root `\` route in which we initially rendered the inputs page, and then rendered the outputs page in the same route after the inputs are submitted.
+
+Our client-side data was passed around using React Context, and validated using react-hook-form and zod. Instructions are MIPS x64 instructions and are either inputted in a text area or in a uploaded in a .txt file, and in either way they are parsed to an array of instructions.
+
+Our frontend was fairly straightforward to implement. Check our main `README.md` for a demo to see it in action!
+
 ### Code Structure
 
-Our codebase is split into two main folders (excluding the docs folder and any other non logic-related folder), those being `client` and `server`. These two would be be deployed separately but in our case, we just run in the local host.
+Our codebase is split into two main folders (excluding the docs folder and any other non logic-related folders), those being `client` and `server`. These two would be deployed separately but in our case, we just run in the localhost, so we can comfortably keep them both under the same repository and run each of them on their port on the localhost and have them communicate via HTTP normally.
 
 ```
 TODO:
@@ -82,9 +90,9 @@ This chapter documents our testing process.
 
 ### Running the Code
 
-Early on, to run our backend, we created a server that just runs the algorithm once called and then exits. We then added console logs throughout our codebase to test the output in each component at every cycle and evaluated the outputs.
+Early on, to run our backend, we created a server that just runs the algorithm once we run the server and then exits. We then added console logs throughout our codebase to test the output in each component at every cycle and evaluated the outputs.
 
-This was enough for us initially when testing using the CLI. However, later we transitioned the server to an express server to be able to listen on a port and have the client make requests to the server to run the algorithm.
+This was enough for us initially when testing using the CLI. However, later we transitioned the server to an express server to be able to listen on a port and have the client make requests to the server to run the algorithm and retrieve the results to display in the GUI.
 
 ### Test Cases
 

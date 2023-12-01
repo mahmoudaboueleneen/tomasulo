@@ -8,6 +8,13 @@ An implementation of the tomasulo architecture and algorithm.
 ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white)
 
+## Demo
+
+```
+TODO:
+ADD DEMO.
+```
+
 ## Documentation
 
 Please see `report.md` in the `docs` folder to get started with the documentation.
