@@ -101,13 +101,12 @@ Our frontend was fairly straightforward to implement. Check our main `README.md`
 
 ### Code Structure
 
-Our codebase is split into two main folders (excluding the docs folder and any other non logic-related folders), those being `client` and `server`. These two would be deployed separately but in our case, we just run in the localhost, so we can comfortably keep them both under the same repository and run each of them on their port on the localhost and have them communicate via HTTP normally.
+Our codebase is split into two main folders (excluding the docs folder and any other non logic-related folders), those being `client` and `server`. These two would be deployed separately but, in our case, we just run in the localhost, so we can comfortably keep them both under the same repository and run each of them on their port on the localhost and have them communicate via HTTP normally.
 
 Here is our project's file tree with some omissions for simplification.
 
 ```
 .
-├───.vscode
 ├───client
 │   ├───sample_programs
 │   └───src
