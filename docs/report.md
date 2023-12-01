@@ -121,21 +121,23 @@ vars to track: clockCycleNumber, cyclesLeft (for each instruction)
 
 We have also made a list of assumptions with regards to the algorithm, hardware architecture, instruction syntax, and more.
 
-Here are our assumptions.
+Here are our assumptions:
 
-```
-- For adding a label, the label must end with a ':' or ',' and when executing a branch instruction to jump to this label, the branch instruction should have the label without this last character. For example:
+-   For adding a label, the label must end with a ':' or ',' and when executing a branch instruction to jump to this label, the branch instruction should have the label without this last character. For example:
 
-LOOP: L.D F1, 0
-      BNEZ R1, LOOP
+         LOOP: L.D F1, 0
+         BNEZ R1, LOOP
 
+-   Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value
 
-- Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value (e.g. L.D F2, 100 ... NOT THIS ... L.D F2, 32(R2) )
+         [THIS] L.D F2, 100
+         [NOT THIS] L.D F2, 32(R2)
 
-- In an instruction, fields following the operation field are separated from each other by a comma and a space. (e.g. R2, R3)
+-   In an instruction, fields following the operation field are separated from each other by a comma and a space.
 
-- If two instructions finish at the same time and want to write to the bus, we pick the one which came first. (FIFO)
-```
+         R2, R3
+
+-   If two instructions finish at the same time and want to write to the bus, we pick the one which came first. (FIFO)
 
 ### The Tomasulo Architecture
 
