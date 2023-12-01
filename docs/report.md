@@ -2,7 +2,11 @@
 
 This document provides a high-level overview of this software's architecture and its lifecycle. We have documented our approach and thinking for each stage of the software's lifecycle and what each process yielded.
 
-We have also covered the difficulties and challenges that we've encountered in the Appendix.
+We also go over more difficulties and challenges that we've encountered in more detail in the Appendix.
+
+## Prerequisites
+
+This report assumes the reader already has knowledge and understanding of the terms used when discussing the Tomasulo algorithm/architecture, such as reservation stations/buffers, but is not completely required in order to proceed.
 
 ## Table of Contents
 
