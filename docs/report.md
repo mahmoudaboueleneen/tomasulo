@@ -6,7 +6,7 @@ We also go over more difficulties and challenges that we've encountered in more 
 
 ## Prerequisites
 
-This report assumes the reader already has knowledge and understanding of the terms used when discussing the Tomasulo algorithm/architecture, such as reservation stations/buffers, but is not completely required in order to proceed.
+This report assumes the reader already has knowledge and understanding of the terms used when discussing the Tomasulo algorithm/architecture, such as reservation stations/buffers, as well as general computer architecture terms/concepts, but all are not completely required in order to proceed.
 
 ## Table of Contents
 
@@ -56,7 +56,7 @@ We use classes to simulate the hardware components, and interfaces and abstract 
 -   `CommonDataBus`
 -   `RegisterFile`
 
-We also had Handler classes to carry out the logic of each stage in the Tomasulo pipeline. Some of those classes are:
+We also have Handler classes to carry out the logic of each stage in the Tomasulo pipeline. Some of those classes are:
 
 -   `FetchHandler`
 -   `IssueHandler`
@@ -67,7 +67,7 @@ Finally, our `Tomasulo` class, which is the main class, contains our program's m
 
 ### Technology Stack
 
-Our language of choice was either going to be Java or TypeScript due to our familiarity with both and the availability of OO features in both, but since we knew we would develop a GUI, we opted for TypeScript so we can use one language for the frontend and the backend.
+Our language of choice was either going to be Java or TypeScript due to our familiarity with them and the availability of OO features in both of them. Since we knew we would develop a GUI, we opted for TypeScript so we can use one language for both frontend and backend.
 
 We used React with Typescript and Material UI (MUI) styled components to create our GUI. Other than that, we did not use any other fancy technologies.
 
@@ -81,7 +81,7 @@ The first thing we implemented was the inputs page for users to input the progra
 
 ### Backend
 
-We began visualizing how our backend would work by referencing our written algorithm and our hardware overview diagrams to maintain as realistic of an implementation as possible. This also led us to an interesting problem, see more in the `Appendix`.
+We began visualizing how our backend would work by referencing our written algorithm and our hardware overview diagrams to maintain as realistic of an implementation as possible. (This also led us to an interesting problem on simulation realism, see more in the `Appendix`)
 
 We wrote the majority of our backend code in group coding sessions as the tasks could not be split across the team members due to the heavy dependencies.
 
@@ -97,7 +97,7 @@ We did not need to use any routing, as we only needed the root route `/` in whic
 
 Our client-side data was passed around using React Context, and validated using react-hook-form and zod. Instructions are MIPS x64 instructions and are either inputted in a text area or in a uploaded in a .txt file, and in either way they are parsed to an array of instructions.
 
-Our frontend was fairly straightforward to implement. Check our main `README.md` for a demo to see it in action!
+Our frontend was fairly straightforward to implement. Check our main `README.md` file for a demo to see it in action!
 
 ### Code Structure
 
@@ -110,7 +110,7 @@ ADD THE FOLDER STRUCTURE
 
 ### Workflow
 
-We maintained a constant feedback loop of incrementally adding features but refactoring appropriately after adding each one of them to keep the codebase clean and maintainable.
+We maintained a constant feedback loop of incrementally adding features and refactoring after adding each one of them to keep the codebase clean and maintainable.
 
 We used GitHub Issues to track bugs, necessary features and questions.
 
@@ -120,9 +120,9 @@ This chapter documents the testing phase of our software.
 
 ### Running the Code
 
-Early on, to run our backend, we created a server that just runs the algorithm once we run the server and then exits. We then added console logs throughout our codebase to test the output in each component at every cycle and evaluated the outputs.
+Early on, to run our backend, we created a server that just runs the algorithm once we run the server and then exits. We added console logs throughout our codebase to test the output in each component at every cycle and evaluated the outputs.
 
-This was enough for us initially when testing using the CLI. However, later we transitioned the server to an express server to be able to listen on a port and have the client make requests to the server to run the algorithm and retrieve the results to display in the GUI.
+This was enough for us initially when testing using the CLI. However, we later transitioned to an express server to be able to listen on a port and have the client make requests to the server to run the algorithm and retrieve the results to display in the GUI.
 
 ### Test Cases
 
@@ -137,11 +137,13 @@ This chapter provides extra details, obstacles and challenges that we ran into, 
 
 ### The N-1 Bug
 
-Initially, we were not going to separate our application into a client and server, and we were just going to have frontend and backend logic all under one big `src` folder.
+Initially, we were not going to separate our application into a client and server, and we were just going to have frontend and backend logic all in one place with no need to make network requests between the frontend and backend, which was - and still seems like - the obvious, intuitive way to go about an application like this.
 
-However, we ran into a bug in which we tried setting a value of an object to a number, and what happened was that number would always be set as that number minus one. We tried everything, and the error made absolutely no sense and the only way that it was fixed was when we separated our backend logic into a server and called that server from our React client.
+However, we ran into an absurdly rare bug in which we tried setting a value of a field in an object to a number, and what happened was that number would always get set as that number minus one. No matter what number N we gave it, it would give us back N-1. We tried everything, and the error made absolutely no sense. We console logged the value inside the setter for this object's field, and it was N inside the setter, even after setting the value, but then after exiting the setter method and going back, and console logging in the next line directly after calling the setter on this object, the value would be N-1.
 
-We reached a conclusion that this bug is due to a 0.00001% chance error (probably an exaggeration, but you get it) that is caused by the Typescript compiler due to some unusual arrangement of dependencies in our project.
+The only way that it was fixed was when we separated our backend logic into a server and called that server from our React client.
+
+We reached a conclusion that this bug is due to some 0.00001% chance error (probably an exaggeration, but you get the point) that is caused by the Typescript compiler due to some unusual arrangement of dependencies in our project.
 
 Due to our limited time, we decided not to delve deeper into investigating how to resolve this issue and not go searching for answers for weird compiler problems that we were unlikely to come across a ready solution for. Thus, we decided to swallow the pill and stick to client-server architecture.
 
@@ -161,8 +163,8 @@ Here's the problem.
 
 In our case, we reached a point where an Adder, for example, had to write its result to the bus - which is nothing but a bunch of wires to transmit the data. We found ourselves asking whether we should simulate the bus, making a class for the bus and having the components then read from it.
 
-Now, we ended up adding a `CommonDataBus` class, effectively simulating these wires, but one does not have to stop there. We can just keep going on and on and on with no end to this. We could keep simulating down to the level of the logic gates.
+Now, we ended up adding the `CommonDataBus` class, effectively simulating these wires, but one does not have to stop there. We can just keep going on and on and on with no end to this. We could keep simulating down to the level of the logic gates.
 
-Many times during this project we found ourselves thinking that implementing the real thing would've been easier, because we have to make up fake scenarios and ways that go against the actual logic of the thing we're actually trying to simulate, because it is just that - a simulation. It's not the real thing, so you often have to go out of your way to do things that go against the real logic in order to make the simulation work.
+Another thing is, many times during this project we found ourselves thinking that implementing the real thing would've been easier, because we have to make up fake scenarios and ways that go against the actual logic of the thing we're actually trying to simulate, because it is just that - a simulation. It's not the real thing, so you often have to go out of your way to do things that go against the real logic in order to make the simulation work.
 
-Perhaps this is too philosophical. Perhaps it is nonsensical. And, perhaps this is just how it is with these kinds of projects.
+Perhaps this is all too philosophical. Perhaps it is nonsensical. Perhaps this is just how it is with these kinds of projects.
