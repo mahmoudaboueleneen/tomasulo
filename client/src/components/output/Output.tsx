@@ -13,7 +13,14 @@ const Output = () => {
     const [currentTomasuloInstance, setCurrentTomasuloInstance] = useState<any>({});
     const [cycleNumber, setCycleNumber] = useState(0);
 
-    const { instructionLatencies, bufferSizes, reservationStationsSizes, instructions } = useContext(InputContext);
+    const {
+        instructionLatencies,
+        bufferSizes,
+        reservationStationsSizes,
+        instructions,
+        preloadedRegisters,
+        preloadedMemoryLocations
+    } = useContext(InputContext);
 
     useEffect(() => {
         const fetchTomasuloData = async () => {
@@ -23,7 +30,9 @@ const Output = () => {
                 instructionLatencies,
                 bufferSizes,
                 reservationStationsSizes,
-                parsedInstructions
+                parsedInstructions,
+                preloadedRegisters,
+                preloadedMemoryLocations
             });
             setTomasuloInstances(response.data.tomasuloInstances);
             setCurrentTomasuloInstance(response.data.tomasuloInstances[0]);

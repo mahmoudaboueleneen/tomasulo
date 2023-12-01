@@ -37,10 +37,10 @@ export const InputContext = createContext<InputContextValues>({
     instructions: "",
     setInstructions: () => {},
 
-    preloadedRegisters: null,
+    preloadedRegisters: [],
     setPreloadedRegisters: () => {},
 
-    preloadedMemoryLocations: null,
+    preloadedMemoryLocations: [],
     setPreloadedMemoryLocations: () => {},
 
     formActions: null,

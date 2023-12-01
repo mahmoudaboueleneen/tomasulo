@@ -9,6 +9,8 @@ import ReservationStationSizeInput from "./ReservationStationSizeInput";
 import { InputContext } from "../../contexts/InputContext";
 import TextAreaInput from "./TextAreaInput";
 import FileInput from "./FileInput";
+import RegisterPreloadInput from "./RegisterPreloadInput";
+import MemoryPreloadInput from "./MemoryPreloadInput";
 
 interface Props {
     setStage: React.Dispatch<React.SetStateAction<string>>;
@@ -155,6 +157,22 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                         value={context.reservationStationsSizes.MultiplyDivideReservationStationSize}
                         label="Multiply/Divide Reservation Station"
                     />
+                </div>
+
+                <div style={{ marginBottom: 40 }}>
+                    <Typography variant="h4" component="div" gutterBottom>
+                        Preload Registers
+                    </Typography>
+
+                    <RegisterPreloadInput />
+                </div>
+
+                <div style={{ marginBottom: 40 }}>
+                    <Typography variant="h4" component="div" gutterBottom>
+                        Preload Memory
+                    </Typography>
+
+                    <MemoryPreloadInput />
                 </div>
 
                 <Button type="submit" variant="contained">

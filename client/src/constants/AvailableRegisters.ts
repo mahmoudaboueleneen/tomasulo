@@ -1,4 +1,4 @@
-const Registers = [
+const AvailableRegisters = [
     "R0",
     "R1",
     "R2",
@@ -66,4 +66,4 @@ const Registers = [
     "F31"
 ];
 
-export default Registers;
+export default AvailableRegisters;

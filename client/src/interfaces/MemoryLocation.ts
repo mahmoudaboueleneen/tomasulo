@@ -1,5 +1,5 @@
 interface MemoryLocation {
-    address: string;
+    address: number;
     value: number;
 }
 

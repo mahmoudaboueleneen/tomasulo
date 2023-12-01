@@ -32,6 +32,8 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
             req.body.reservationStationsSizes;
 
         const parsedInstructions = req.body.parsedInstructions;
+        const preloadedRegisters = req.body.preloadedRegisters;
+        const preloadedMemoryLocations = req.body.preloadedMemoryLocations;
 
         const tomasulo = new Tomasulo(
             parsedInstructions,
@@ -45,12 +47,14 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
             FPDivideLatency,
             IntSubtractLatency,
             LoadLatency,
-            StoreLatency
+            StoreLatency,
+            preloadedRegisters,
+            preloadedMemoryLocations
         );
 
         const tomasuloInstances = tomasulo.runTomasuloAlgorithm();
 
-        console.log("Finished running tomasulo algorithm, proceeding to send response");
+        console.info("Finished running tomasulo algorithm.");
 
         res.status(200).json({
             tomasuloInstances: tomasuloInstances

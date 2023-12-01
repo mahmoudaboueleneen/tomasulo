@@ -70,12 +70,12 @@ class Tomasulo {
         preloadedMemoryLocations?: any
     ) {
         this.registerFile = new RegisterFile();
-        if (preloadedRegisters) {
+        if (preloadedRegisters && preloadedRegisters.length > 0) {
             this.registerFile.preloadRegisters(preloadedRegisters);
         }
 
         this.dataCache = new DataCache();
-        if (preloadedMemoryLocations) {
+        if (preloadedMemoryLocations && preloadedMemoryLocations.length > 0) {
             this.dataCache.preloadMemoryLocations(preloadedMemoryLocations);
         }
 
