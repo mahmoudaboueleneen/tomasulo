@@ -48,6 +48,15 @@ class RegisterFile {
         }
     }
 
+    preloadRegisters(preloadedRegisters: any) {
+        preloadedRegisters.forEach((register: any) => {
+            this.registers.set(register.name, {
+                content: register.value,
+                qi: 0
+            });
+        });
+    }
+
     readContent(register: string): number {
         return this.registers.get(register)!.content;
     }

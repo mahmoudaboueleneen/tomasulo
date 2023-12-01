@@ -16,6 +16,12 @@ class DataCache {
         return new DataCache(new Map(this.data), this.runningBufferTag);
     }
 
+    preloadMemoryLocations(preloadedMemoryLocations: any) {
+        preloadedMemoryLocations.forEach((memoryLocation: any) => {
+            this.data.set(memoryLocation.address, memoryLocation.value);
+        });
+    }
+
     read(address: number): number {
         return this.data.get(address) || 0;
     }

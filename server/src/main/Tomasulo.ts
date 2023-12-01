@@ -50,9 +50,8 @@ class Tomasulo {
     private IntAddLatency: number;
     private BranchNotEqualZeroLatency: number;
 
-    // May be preloaded by the user, otherwise initialized with default values
-    private dataCache: DataCache;
     private registerFile: RegisterFile;
+    private dataCache: DataCache;
 
     constructor(
         instructions: string[],
@@ -67,11 +66,18 @@ class Tomasulo {
         IntSubtractLatency: number,
         LoadLatency: number,
         StoreLatency: number,
-        registerFile?: RegisterFile,
-        dataCache?: DataCache
+        preloadedRegisters?: any,
+        preloadedMemoryLocations?: any
     ) {
-        this.registerFile = registerFile || new RegisterFile();
-        this.dataCache = dataCache || new DataCache();
+        this.registerFile = new RegisterFile();
+        if (preloadedRegisters) {
+            this.registerFile.preloadRegisters(preloadedRegisters);
+        }
+
+        this.dataCache = new DataCache();
+        if (preloadedMemoryLocations) {
+            this.dataCache.preloadMemoryLocations(preloadedMemoryLocations);
+        }
 
         this.instructionCache = new InstructionCache(instructions, this.registerFile.getPCRegister());
         this.instructionQueue = new InstructionQueue();
