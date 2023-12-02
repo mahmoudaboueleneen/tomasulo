@@ -39,11 +39,6 @@ const Output = () => {
 
             setIsLoading(false);
         };
-
-        fetchTomasuloData();
-    }, []);
-
-    useEffect(() => {
         const handleKeyUp = (event: KeyboardEvent) => {
             switch (event.key) {
                 case "ArrowLeft":
@@ -56,13 +51,13 @@ const Output = () => {
                     break;
             }
         };
-
         window.addEventListener("keyup", handleKeyUp);
-
+        fetchTomasuloData();
         return () => {
             window.removeEventListener("keyup", handleKeyUp);
         };
     }, []);
+
 
     const incrementCycle = () => {
         setCycleNumber((prevCycleNumber) => {

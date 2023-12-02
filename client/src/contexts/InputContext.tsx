@@ -57,32 +57,32 @@ type InputsContextProviderProps = {
 
 const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }) => {
     const [instructionLatencies, setInstructionLatencies] = useState<InstructionLatencies>({
-        FPAddLatency: 0,
-        FPSubtractLatency: 0,
-        FPMultiplyLatency: 0,
-        FPDivideLatency: 0,
-        IntSubtractLatency: 0,
-        LoadLatency: 0,
-        StoreLatency: 0
+        FPAddLatency: 2,
+        FPSubtractLatency: 2,
+        FPMultiplyLatency: 3,
+        FPDivideLatency: 3,
+        IntSubtractLatency: 1,
+        LoadLatency: 2,
+        StoreLatency: 2
         // IntAddLatency: 1,
         // BranchNotEqualZeroLatency: 1,
     });
 
     const [bufferSizes, setBufferSizes] = useState({
-        LoadBufferSize: 0,
-        StoreBufferSize: 0
+        LoadBufferSize: 2,
+        StoreBufferSize: 2
     });
 
     const [reservationStationsSizes, setReservationStationsSizes] = useState({
-        AddSubtractReservationStationSize: 0,
-        MultiplyDivideReservationStationSize: 0
+        AddSubtractReservationStationSize: 2,
+        MultiplyDivideReservationStationSize: 2
     });
 
-    const [instructions, setInstructions] = useState<Instructions | null>();
+    const [instructions, setInstructions] = useState<Instructions | null | undefined>("ADDI R1, R1, 16\nLOOP: L.D F0, 0\nMUL.D F4, F0, F2\nS.D F4, 0\nSUBI R1, R1, 8\nBNEZ R1, LOOP");
 
-    const [preloadedRegisters, setPreloadedRegisters] = useState<Register[] | null>(null);
+    const [preloadedRegisters, setPreloadedRegisters] = useState<Register[] | null>([{name: "F2", value: 3}]);
 
-    const [preloadedMemoryLocations, setPreloadedMemoryLocations] = useState<MemoryLocation[] | null>(null);
+    const [preloadedMemoryLocations, setPreloadedMemoryLocations] = useState<MemoryLocation[] | null>([{address: 0, value: 2}]);
 
     const {
         control,
@@ -92,7 +92,7 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
         resolver: zodResolver(InputFormSchema)
     });
 
-    const [instructionsFormat, setInstructionsFormat] = useState("file-upload");
+    const [instructionsFormat, setInstructionsFormat] = useState("string");
     const [instructionsError, setInstructionsError] = useState<string | null>(null);
 
     const contextValues = {

@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
@@ -26,6 +26,16 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
     const onSubmit = async () => {
         setStage("output");
     };
+
+    useEffect(() => {
+        const handleKeyUp = (event: KeyboardEvent) => {
+            if(event.key === "Enter") onSubmit();
+        };
+        window.addEventListener("keyup", handleKeyUp);
+        return () => {
+            window.removeEventListener("keyup", handleKeyUp);
+        };
+    }, []);
 
     return (
         <div>
