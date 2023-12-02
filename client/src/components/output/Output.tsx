@@ -10,7 +10,6 @@ import { parseInstructions } from "../../utils/Parsing";
 const Output = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [tomasuloInstances, setTomasuloInstances] = useState<any>([]);
-    const [currentTomasuloInstance, setCurrentTomasuloInstance] = useState<any>({});
     const [cycleNumber, setCycleNumber] = useState(0);
 
     const {
@@ -35,10 +34,11 @@ const Output = () => {
                 preloadedMemoryLocations
             });
             setTomasuloInstances(response.data.tomasuloInstances);
-            setCurrentTomasuloInstance(response.data.tomasuloInstances[0]);
 
             setIsLoading(false);
         };
+        fetchTomasuloData();
+
         const handleKeyUp = (event: KeyboardEvent) => {
             switch (event.key) {
                 case "ArrowLeft":
@@ -51,29 +51,20 @@ const Output = () => {
                     break;
             }
         };
+        
         window.addEventListener("keyup", handleKeyUp);
-        fetchTomasuloData();
+        
         return () => {
             window.removeEventListener("keyup", handleKeyUp);
         };
     }, []);
 
-
     const incrementCycle = () => {
-        setCycleNumber((prevCycleNumber) => {
-            const newCycleNumber =
-                prevCycleNumber + 1 < tomasuloInstances.length ? prevCycleNumber + 1 : prevCycleNumber;
-            setCurrentTomasuloInstance(tomasuloInstances[newCycleNumber]);
-            return newCycleNumber;
-        });
+        setCycleNumber((prevCycleNumber) => prevCycleNumber + 1 < tomasuloInstances.length ? prevCycleNumber + 1 : prevCycleNumber);
     };
 
     const decrementCycle = () => {
-        setCycleNumber((prevCycleNumber) => {
-            const newCycleNumber = prevCycleNumber > 0 ? prevCycleNumber - 1 : 0;
-            setCurrentTomasuloInstance(tomasuloInstances[newCycleNumber]);
-            return newCycleNumber;
-        });
+        setCycleNumber((prevCycleNumber) =>  prevCycleNumber > 0 ? prevCycleNumber - 1 : 0);
     };
 
     if (isLoading) {
@@ -90,7 +81,7 @@ const Output = () => {
             </Box>
         );
     }
-
+    const currentTomasuloInstance = tomasuloInstances[cycleNumber];
     return (
         <>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-evenly" }}>
