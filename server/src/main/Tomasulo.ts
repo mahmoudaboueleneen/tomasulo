@@ -239,12 +239,21 @@ class Tomasulo {
             this.LoadLatency,
             this.StoreLatency,
             this.IntAddLatency,
-            this.BranchNotEqualZeroLatency
+            this.BranchNotEqualZeroLatency,
+            this.tagsToBeCleared
         ).handleIssuing();
     }
 
     private fetch() {
         new FetchHandler(this.instructionCache, this.instructionQueue, this.canContinueFetching()).handleFetching();
+
+        clearFinishedBNEZInstructionIfExisting(this);
+
+        function clearFinishedBNEZInstructionIfExisting(tomasulo: Tomasulo) {
+            if (tomasulo.tagsToBeCleared.includes(tomasulo.BNEZStationToBeCleared.tag)) {
+                tomasulo.BNEZStationToBeCleared.tag = null;
+            }
+        }
     }
 
     private canContinueFetching() {

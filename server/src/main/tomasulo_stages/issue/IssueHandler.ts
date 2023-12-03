@@ -45,6 +45,8 @@ class IssueHandler {
     private IntAddLatency: number;
     private BranchNotEqualZeroLatency: number;
 
+    private tagsToBeCleared: Tag[];
+
     constructor(
         instructionCache: InstructionCache,
         instructionQueue: InstructionQueue,
@@ -63,7 +65,8 @@ class IssueHandler {
         LoadLatency: number,
         StoreLatency: number,
         IntAddLatency: number,
-        BranchNotEqualZeroLatency: number
+        BranchNotEqualZeroLatency: number,
+        tagsToBeCleared: Tag[]
     ) {
         this.decodeHandler = new DecodeHandler(instructionCache);
         this.instructionQueue = instructionQueue;
@@ -85,6 +88,7 @@ class IssueHandler {
         this.StoreLatency = StoreLatency;
         this.IntAddLatency = IntAddLatency;
         this.BranchNotEqualZeroLatency = BranchNotEqualZeroLatency;
+        this.tagsToBeCleared = tagsToBeCleared;
     }
 
     public handleIssuing() {
@@ -132,6 +136,13 @@ class IssueHandler {
 
         const storeInstruction = this.instructionDecoded as StoreType;
 
+        if (
+            this.isAnyLoadIssuedForAddress(storeInstruction.Address) ||
+            this.isAnyStoreIssuedForAddress(storeInstruction.Address)
+        ) {
+            return;
+        }
+
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
 
         freeBuffer.setCyclesLeft(this.StoreLatency);
@@ -165,7 +176,14 @@ class IssueHandler {
     }
 
     private isAnyStoreIssuedForAddress(address: number) {
-        return this.storeBuffers.some((buffer) => buffer.address === address && buffer.busy === 1);
+        const existingStoreTag = this.storeBuffers.find(
+            (buffer) => buffer.address === address && buffer.busy === 1
+        )?.tag;
+        return existingStoreTag && !this.tagsToBeCleared.includes(existingStoreTag);
+    }
+    private isAnyLoadIssuedForAddress(address: number) {
+        const existingLoadTag = this.loadBuffers.find((buffer) => buffer.address === address && buffer.busy === 1)?.tag;
+        return existingLoadTag && !this.tagsToBeCleared.includes(existingLoadTag);
     }
 
     private handleMulDivInstruction() {

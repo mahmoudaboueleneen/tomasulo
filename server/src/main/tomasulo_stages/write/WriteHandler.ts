@@ -70,8 +70,6 @@ class WriteHandler {
 
         if (this.BNEZStationToBeCleared.tag) {
             this.tagsToBeCleared.push(this.BNEZStationToBeCleared.tag);
-
-            this.BNEZStationToBeCleared.tag = null;
         }
 
         function clearStoreBuffer(storeBufferToBeCleared: StoreBufferToBeCleared) {
