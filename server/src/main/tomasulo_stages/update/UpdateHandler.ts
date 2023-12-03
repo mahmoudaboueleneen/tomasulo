@@ -10,22 +10,19 @@ class UpdateHandler {
     private storeBuffers: StoreBuffer[];
     private registerFile: RegisterFile;
     private commonDataBus: CommonDataBus;
-    private contentToBeWrittenToPCRegister: { content: number | null };
 
     constructor(
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[],
         storeBuffers: StoreBuffer[],
         registerFile: RegisterFile,
-        commonDataBus: CommonDataBus,
-        contentToBeWrittenToPCRegister: { content: number | null }
+        commonDataBus: CommonDataBus
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
         this.storeBuffers = storeBuffers;
         this.registerFile = registerFile;
         this.commonDataBus = commonDataBus;
-        this.contentToBeWrittenToPCRegister = contentToBeWrittenToPCRegister;
     }
 
     public handleUpdating() {
@@ -68,12 +65,6 @@ class UpdateHandler {
         const { tag: tagOnBus, value: valueOnBus } = this.commonDataBus.read();
 
         this.registerFile.updateRegisters(tagOnBus, valueOnBus);
-
-        if (this.contentToBeWrittenToPCRegister.content) {
-            this.registerFile.setPCRegisterValue(this.contentToBeWrittenToPCRegister.content);
-        }
-
-        this.contentToBeWrittenToPCRegister.content = null;
     }
 }
 

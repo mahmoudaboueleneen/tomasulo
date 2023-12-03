@@ -25,8 +25,6 @@ class ExecuteHandler {
     private finishedTagValuePairs: TagValuePair[];
     private candidateLoadBuffer: LoadBuffer | null;
     private candidateStoreBuffer: StoreBuffer | null;
-    private tagsToBeCleared: Tag[];
-    private contentToBeWrittenToPCRegister: { content: number | null };
     private storeBufferToBeCleared: StoreBufferToBeCleared;
     private BNEZStationToBeCleared: BNEZStationToBeCleared;
     private registerFile: RegisterFile;
@@ -41,8 +39,6 @@ class ExecuteHandler {
         dataCache: DataCache,
         tagTimeMap: Map<Tag, number>,
         finishedTagValuePairs: TagValuePair[],
-        tagsToBeCleared: Tag[],
-        contentToBeWrittenToPCRegister: { content: number | null },
         storeBufferToBeCleared: StoreBufferToBeCleared,
         BNEZStationToBeCleared: BNEZStationToBeCleared,
         registerFile: RegisterFile
@@ -58,8 +54,6 @@ class ExecuteHandler {
         this.finishedTagValuePairs = finishedTagValuePairs;
         this.candidateLoadBuffer = null;
         this.candidateStoreBuffer = null;
-        this.tagsToBeCleared = tagsToBeCleared;
-        this.contentToBeWrittenToPCRegister = contentToBeWrittenToPCRegister;
         this.storeBufferToBeCleared = storeBufferToBeCleared;
         this.BNEZStationToBeCleared = BNEZStationToBeCleared;
         this.registerFile = registerFile;

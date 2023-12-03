@@ -19,7 +19,6 @@ import Tag from "../types/Tag";
 import TagValuePair from "../interfaces/TagValuePair";
 import TomasuloInstance from "../types/TomasuloInstance";
 import { mapToDataArray, mapToRegisterArray } from "../utils/jsonMapHandler";
-import V from "../types/V";
 import StoreBufferToBeCleared from "../types/StoreBufferToBeCleared";
 import BNEZStationToBeCleared from "../types/BNEZStationToBeCleared";
 
@@ -37,7 +36,6 @@ class Tomasulo {
     private FPAdders: FPAdder[];
     private FPMultipliers: FPMultiplier[];
     private tagsToBeCleared: Tag[];
-    private contentToBeWrittenToPCRegister: { content: number | null };
     private storeBufferToBeCleared: StoreBufferToBeCleared;
     private BNEZStationToBeCleared: BNEZStationToBeCleared;
 
@@ -114,7 +112,6 @@ class Tomasulo {
         this.finishedTagValuePairs = [];
 
         this.tagsToBeCleared = [];
-        this.contentToBeWrittenToPCRegister = { content: null };
 
         this.storeBufferToBeCleared = { tag: null, address: null, v: null };
         this.BNEZStationToBeCleared = { tag: null };
@@ -135,11 +132,7 @@ class Tomasulo {
     public runTomasuloAlgorithm(): TomasuloInstance[] {
         const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [];
 
-        for (let i = 0; this.toKeepRunning(); i++) {
-            if (i === 50) {
-                break;
-            }
-
+        while (this.toKeepRunning()) {
             this.write();
             this.execute();
             this.issue();
@@ -148,25 +141,19 @@ class Tomasulo {
             this.clear();
 
             tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
+
             this.currentClockCycle++;
         }
         return tomasuloInstancesAtEachCycle;
     }
 
     private toKeepRunning() {
-        // console.log("instructions all fetched" + this.instructionCache.hasNonFetchedInstructions());
-        // console.log("instruction queue is not empty" + !this.instructionQueue.isEmpty());
-        // console.log("running stations or buffers exist" + this.existRunningStationOrBuffer());
-        // console.log("tags to be cleared exist" + (this.tagsToBeCleared.length > 0));
-        // console.log("content to be written to PC register exists" + this.contentToBeWrittenToPCRegister.content);
-
         return (
             this.instructionCache.hasNonFetchedInstructions() ||
             !this.instructionQueue.isEmpty() ||
             this.existRunningStationOrBuffer() ||
             this.tagsToBeCleared.length > 0 ||
-            this.contentToBeWrittenToPCRegister.content ||
-            this.existWritesAwaitingWriting
+            this.existWritesAwaitingWriting()
         );
     }
 
@@ -222,8 +209,6 @@ class Tomasulo {
             this.dataCache,
             this.tagTimeMap,
             this.finishedTagValuePairs,
-            this.tagsToBeCleared,
-            this.contentToBeWrittenToPCRegister,
             this.storeBufferToBeCleared,
             this.BNEZStationToBeCleared,
             this.registerFile
@@ -271,14 +256,11 @@ class Tomasulo {
             this.mulDivReservationStations,
             this.storeBuffers,
             this.registerFile,
-            this.commonDataBus,
-            this.contentToBeWrittenToPCRegister
+            this.commonDataBus
         ).handleUpdating();
     }
 
     private clear() {
-        console.log("current clock cycle: " + this.currentClockCycle);
-
         new ClearHandler(
             this.addSubReservationStations,
             this.mulDivReservationStations,
