@@ -133,7 +133,7 @@ class Tomasulo {
 
     // TODO: Update the condition
     public runTomasuloAlgorithm(): TomasuloInstance[] {
-        const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [this.createTomasuloInstance()];
+        const tomasuloInstancesAtEachCycle: TomasuloInstance[] = [];
 
         for (let i = 0; this.toKeepRunning(); i++) {
             if (i === 50) {
@@ -146,9 +146,9 @@ class Tomasulo {
             this.fetch();
             this.update();
             this.clear();
-            this.currentClockCycle++;
 
             tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
+            this.currentClockCycle++;
         }
         return tomasuloInstancesAtEachCycle;
     }
@@ -277,6 +277,8 @@ class Tomasulo {
     }
 
     private clear() {
+        console.log("current clock cycle: " + this.currentClockCycle);
+
         new ClearHandler(
             this.addSubReservationStations,
             this.mulDivReservationStations,

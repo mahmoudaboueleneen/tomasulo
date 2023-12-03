@@ -29,10 +29,15 @@ class UpdateHandler {
     }
 
     public handleUpdating() {
+        if (!this.commonDataBus.containsData()) {
+            return;
+        }
         this.updateAddSubReservationStations();
         this.updateMulDivReservationStations();
         this.updateStoreBuffers();
         this.updateRegisterFile();
+
+        this.commonDataBus.clear();
     }
 
     private updateAddSubReservationStations() {

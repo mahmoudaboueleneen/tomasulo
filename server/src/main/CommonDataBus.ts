@@ -20,6 +20,15 @@ class CommonDataBus {
             value: this.value
         };
     }
+
+    clear() {
+        this.tag = null;
+        this.value = 0;
+    }
+
+    containsData() {
+        return this.tag !== null;
+    }
 }
 
 export default CommonDataBus;

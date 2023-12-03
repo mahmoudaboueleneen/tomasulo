@@ -64,10 +64,20 @@ class WriteHandler {
         ) {
             this.storeValueInDataCache(this.storeBufferToBeCleared.address, this.storeBufferToBeCleared.v);
             this.tagsToBeCleared.push(this.storeBufferToBeCleared.tag);
+
+            clearStoreBuffer(this.storeBufferToBeCleared);
         }
 
         if (this.BNEZStationToBeCleared.tag) {
             this.tagsToBeCleared.push(this.BNEZStationToBeCleared.tag);
+
+            this.BNEZStationToBeCleared.tag = null;
+        }
+
+        function clearStoreBuffer(storeBufferToBeCleared: StoreBufferToBeCleared) {
+            storeBufferToBeCleared.tag = null;
+            storeBufferToBeCleared.address = null;
+            storeBufferToBeCleared.v = null;
         }
     }
 

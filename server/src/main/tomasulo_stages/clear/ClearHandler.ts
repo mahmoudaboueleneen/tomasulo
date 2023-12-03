@@ -45,7 +45,6 @@ class ClearHandler {
             this.dataCache.clearRunningBufferTag();
         } else if (tag.startsWith("S")) {
             const buffer = this.storeBuffers.find((buffer) => buffer.tag === tag)!;
-            console.log("clearing store buffer... ", buffer.tag);
             buffer.clear();
             this.dataCache.clearRunningBufferTag();
         } else if (tag.startsWith("A")) {

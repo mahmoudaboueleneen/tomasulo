@@ -92,7 +92,7 @@ class RegisterFile {
     }
 
     public updateRegisters(tag: Tag, value: number): void {
-        this.registers.forEach((registerInfo, _register) => {
+        this.registers.forEach((registerInfo) => {
             if (registerInfo.qi === tag) {
                 registerInfo.qi = 0;
                 registerInfo.content = value;
