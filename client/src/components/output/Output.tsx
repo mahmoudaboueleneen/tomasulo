@@ -12,6 +12,8 @@ const Output = () => {
     const [tomasuloInstances, setTomasuloInstances] = useState<any>([]);
     const [cycleNumber, setCycleNumber] = useState(0);
 
+    const [executionError, setExecutionError] = useState<string | null>();
+
     const {
         instructionLatencies,
         bufferSizes,
@@ -25,16 +27,19 @@ const Output = () => {
         const fetchTomasuloData = async () => {
             const parsedInstructions = await parseInstructions(instructions);
 
-            const response = await axios.post("http://localhost:3000/api/v1/tomasulo", {
-                instructionLatencies,
-                bufferSizes,
-                reservationStationsSizes,
-                parsedInstructions,
-                preloadedRegisters,
-                preloadedMemoryLocations
-            });
-            setTomasuloInstances(response.data.tomasuloInstances);
-
+            try {
+                const response = await axios.post("http://localhost:3000/api/v1/tomasulo", {
+                    instructionLatencies,
+                    bufferSizes,
+                    reservationStationsSizes,
+                    parsedInstructions,
+                    preloadedRegisters,
+                    preloadedMemoryLocations
+                });
+                setTomasuloInstances(response.data.tomasuloInstances);
+            } catch (error: any) {
+                setExecutionError(error.response.data.message);
+            }
             setIsLoading(false);
         };
         fetchTomasuloData();
@@ -85,6 +90,24 @@ const Output = () => {
             </Box>
         );
     }
+
+    if (executionError) {
+        return (
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh"
+                }}
+            >
+                <Typography variant="h3" component={"h1"} color={"red"}>
+                    {executionError}
+                </Typography>
+            </Box>
+        );
+    }
+
     const currentTomasuloInstance = tomasuloInstances[cycleNumber];
     return (
         <>

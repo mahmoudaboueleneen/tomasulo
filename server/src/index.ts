@@ -59,8 +59,8 @@ app.post("/api/v1/tomasulo", (req: Request, res: Response) => {
         res.status(200).json({
             tomasuloInstances
         });
-    } catch (error) {
-        res.status(500).json({ error: (error as Error).toString() });
+    } catch (error: any) {
+        res.status(400).json({ message: error.message });
     }
 });
 

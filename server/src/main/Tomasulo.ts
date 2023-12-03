@@ -22,6 +22,7 @@ import { mapToDataArray, mapToRegisterArray } from "../utils/jsonMapHandler";
 import StoreBufferToBeCleared from "../types/StoreBufferToBeCleared";
 import BNEZStationToBeCleared from "../types/BNEZStationToBeCleared";
 
+const EXECUTION_TIME_THRESHOLD = 1000;
 class Tomasulo {
     private instructionCache: InstructionCache;
     private instructionQueue: InstructionQueue;
@@ -143,6 +144,10 @@ class Tomasulo {
             tomasuloInstancesAtEachCycle.push(this.createTomasuloInstance());
 
             this.currentClockCycle++;
+
+            if (this.currentClockCycle > EXECUTION_TIME_THRESHOLD) {
+                throw new Error("Infinite loop detected");
+            }
         }
         return tomasuloInstancesAtEachCycle;
     }
