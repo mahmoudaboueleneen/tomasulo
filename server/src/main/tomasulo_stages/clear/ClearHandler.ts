@@ -39,13 +39,13 @@ class ClearHandler {
 
     private clearStationOrBuffer(tag: Tag) {
         if (!tag) throw new Error("Cannot clear invalid tag");
-
         if (tag.startsWith("L")) {
             const buffer = this.loadBuffers.find((buffer) => buffer.tag === tag)!;
             buffer.clear();
             this.dataCache.clearRunningBufferTag();
         } else if (tag.startsWith("S")) {
             const buffer = this.storeBuffers.find((buffer) => buffer.tag === tag)!;
+            console.log("clearing store buffer... ", buffer.tag);
             buffer.clear();
             this.dataCache.clearRunningBufferTag();
         } else if (tag.startsWith("A")) {

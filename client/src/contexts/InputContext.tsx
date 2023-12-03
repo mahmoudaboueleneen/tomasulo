@@ -78,11 +78,15 @@ const InputContextProvider: React.FC<InputsContextProviderProps> = ({ children }
         MultiplyDivideReservationStationSize: 2
     });
 
-    const [instructions, setInstructions] = useState<Instructions | null | undefined>("ADDI R1, R1, 16\nLOOP: L.D F0, 0\nMUL.D F4, F0, F2\nS.D F4, 0\nSUBI R1, R1, 8\nBNEZ R1, LOOP");
+    const [instructions, setInstructions] = useState<Instructions | null | undefined>(
+        "ADDI R1, R1, 16\nLOOP: L.D F4, 0\nMUL.D F4, F4, F2\nS.D F4, 0\nSUBI R1, R1, 8\nBNEZ R1, LOOP"
+    );
 
-    const [preloadedRegisters, setPreloadedRegisters] = useState<Register[] | null>([{name: "F2", value: 3}]);
+    const [preloadedRegisters, setPreloadedRegisters] = useState<Register[] | null>([{ name: "F2", value: 3 }]);
 
-    const [preloadedMemoryLocations, setPreloadedMemoryLocations] = useState<MemoryLocation[] | null>([{address: 0, value: 2}]);
+    const [preloadedMemoryLocations, setPreloadedMemoryLocations] = useState<MemoryLocation[] | null>([
+        { address: 0, value: 2 }
+    ]);
 
     const {
         control,

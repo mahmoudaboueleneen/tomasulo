@@ -94,8 +94,6 @@ class IssueHandler {
             return;
         }
 
-        this.instructionQueue.dequeue();
-
         this.instructionDecoded = this.decodeHandler.decodeInstruction(peekInstruction);
 
         this.issuedInstructionDestination = getIssuedInstructionDestination(
@@ -139,11 +137,12 @@ class IssueHandler {
         freeBuffer.setCyclesLeft(this.StoreLatency);
 
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
+
+        this.instructionQueue.dequeue();
     }
 
     private handleLoadInstruction() {
         const freeBuffer = this.loadBuffers.find((buffer) => buffer.busy === 0);
-
         if (!freeBuffer) {
             return;
         }
@@ -161,6 +160,8 @@ class IssueHandler {
         this.registerFile.writeTag(loadInstruction.Dest, freeBuffer.tag);
 
         this.tagTimeMap.set(freeBuffer.tag, this.currentClockCycle);
+
+        this.instructionQueue.dequeue();
     }
 
     private isAnyStoreIssuedForAddress(address: number) {
@@ -178,47 +179,41 @@ class IssueHandler {
 
         freeStation.loadInstructionIntoStation(mulDivInstruction.Op as InstructionOperation);
 
-        if (MulInstructions.has(mulDivInstruction.Op)) {
-            freeStation.setCyclesLeft(this.FPMultiplyLatency);
-        } else {
-            freeStation.setCyclesLeft(this.FPDivideLatency);
-        }
-
-        this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
+        setCyclesLeftForStation(this, freeStation);
 
         this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", mulDivInstruction.Src1);
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", mulDivInstruction.Src2);
 
         this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
+
+        this.instructionQueue.dequeue();
+
+        function setCyclesLeftForStation(issueHandler: IssueHandler, freeStation: MulDivReservationStation) {
+            if (MulInstructions.has(mulDivInstruction.Op)) {
+                freeStation.setCyclesLeft(issueHandler.FPMultiplyLatency);
+            } else {
+                freeStation.setCyclesLeft(issueHandler.FPDivideLatency);
+            }
+
+            issueHandler.tagTimeMap.set(freeStation.tag, issueHandler.currentClockCycle);
+        }
     }
 
     private handleAddSubInstruction() {
         const freeStation = this.addSubReservationStations.find((station) => station.busy === 0);
-
         if (!freeStation) {
             return;
         }
 
         freeStation.loadInstructionIntoStation(this.instructionDecoded!.Op as InstructionOperation);
 
-        if (FPAddInstructions.has(this.instructionDecoded!.Op)) {
-            freeStation.setCyclesLeft(this.FPAddLatency);
-        } else if (FPSubInstructions.has(this.instructionDecoded!.Op)) {
-            freeStation.setCyclesLeft(this.FPSubtractLatency);
-        } else if (AddImmediateInstructions.has(this.instructionDecoded!.Op)) {
-            freeStation.setCyclesLeft(this.IntAddLatency);
-        } else if (SubImmediateInstructions.has(this.instructionDecoded!.Op)) {
-            freeStation.setCyclesLeft(this.IntSubtractLatency);
-        } else if (BranchInstructions.has(this.instructionDecoded!.Op)) {
-            freeStation.setCyclesLeft(this.BranchNotEqualZeroLatency);
-        }
-
-        this.tagTimeMap.set(freeStation.tag, this.currentClockCycle);
+        setCyclesLeftForStation(this, freeStation);
 
         if (this.isBNEZInstruction(this.instructionDecoded!)) {
             const branchInstruction = this.instructionDecoded as BranchType;
             this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", branchInstruction.Operand);
             freeStation.A = branchInstruction.BranchAddress;
+            this.instructionQueue.dequeue();
             return;
         }
 
@@ -229,6 +224,7 @@ class IssueHandler {
             this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", ImmediateInstruction.Src);
             freeStation.vk = ImmediateInstruction.Immediate;
             this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
+            this.instructionQueue.dequeue();
             return;
         }
 
@@ -239,6 +235,24 @@ class IssueHandler {
         this.handleSettingVOrQInFreeSpot(freeStation, "vk", "qk", RInstruction.Src2);
 
         this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
+
+        this.instructionQueue.dequeue();
+
+        function setCyclesLeftForStation(issueHandler: IssueHandler, freeStation: AddSubReservationStation) {
+            if (FPAddInstructions.has(issueHandler.instructionDecoded!.Op)) {
+                freeStation.setCyclesLeft(issueHandler.FPAddLatency);
+            } else if (FPSubInstructions.has(issueHandler.instructionDecoded!.Op)) {
+                freeStation.setCyclesLeft(issueHandler.FPSubtractLatency);
+            } else if (AddImmediateInstructions.has(issueHandler.instructionDecoded!.Op)) {
+                freeStation.setCyclesLeft(issueHandler.IntAddLatency);
+            } else if (SubImmediateInstructions.has(issueHandler.instructionDecoded!.Op)) {
+                freeStation.setCyclesLeft(issueHandler.IntSubtractLatency);
+            } else if (BranchInstructions.has(issueHandler.instructionDecoded!.Op)) {
+                freeStation.setCyclesLeft(issueHandler.BranchNotEqualZeroLatency);
+            }
+
+            issueHandler.tagTimeMap.set(freeStation.tag, issueHandler.currentClockCycle);
+        }
     }
 
     private handleSettingVOrQInFreeSpot(
@@ -247,7 +261,7 @@ class IssueHandler {
         QField: "qj" | "qk" | "q",
         operand: string
     ) {
-        if (this.registerFile.readQi(operand) === 0) {
+        if (this.registerFile.readQi(operand) === 0 || this.registerFile.readQi(operand) === null) {
             freeSpot[VField] = this.registerFile.readContent(operand);
         } else {
             freeSpot[QField] = this.registerFile.readQi(operand);

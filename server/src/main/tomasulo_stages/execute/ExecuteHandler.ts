@@ -10,7 +10,8 @@ import AluElement from "../../arithmetic_units/AluElement";
 import Tag from "../../../types/Tag";
 import TagValuePair from "../../../interfaces/TagValuePair";
 import RegisterFile from "../../RegisterFile";
-import { register } from "module";
+import StoreBufferToBeCleared from "../../../types/StoreBufferToBeCleared";
+import BNEZStationToBeCleared from "../../../types/BNEZStationToBeCleared";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
@@ -26,8 +27,8 @@ class ExecuteHandler {
     private candidateStoreBuffer: StoreBuffer | null;
     private tagsToBeCleared: Tag[];
     private contentToBeWrittenToPCRegister: { content: number | null };
-    private storeBufferToBeCleared: { tag: Tag };
-    private BNEZStationToBeCleared: { tag: Tag };
+    private storeBufferToBeCleared: StoreBufferToBeCleared;
+    private BNEZStationToBeCleared: BNEZStationToBeCleared;
     private registerFile: RegisterFile;
 
     constructor(
@@ -42,8 +43,8 @@ class ExecuteHandler {
         finishedTagValuePairs: TagValuePair[],
         tagsToBeCleared: Tag[],
         contentToBeWrittenToPCRegister: { content: number | null },
-        storeBufferToBeCleared: { tag: Tag },
-        BNEZStationToBeCleared: { tag: Tag },
+        storeBufferToBeCleared: StoreBufferToBeCleared,
+        BNEZStationToBeCleared: BNEZStationToBeCleared,
         registerFile: RegisterFile
     ) {
         this.addSubReservationStations = addSubReservationStations;
@@ -80,31 +81,30 @@ class ExecuteHandler {
     private handleRunningInstructionsInStations(stations: ReservationStation[], AluElements: AluElement[]) {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
-            if (station.op === "SUBI") {
-                console.log("Here we go....");
-                console.log(station);
-            }
+            // if (station.op === "SUBI") {
+            //     console.log("Here we go....");
+            //     console.log(station);
+            // }
             if (station.canExecute()) {
-                if (station.op === "SUBI") console.log("Going as expected aho");
+                // if (station.op === "SUBI") console.log("Going as expected aho");
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
 
                 if (station.isFinished()) {
-                    if (station.op === "SUBI") console.log("Going as expected tany aho");
+                    // if (station.op === "SUBI") console.log("Going as expected tany aho");
 
                     const computedValue = stationAluElement.compute(station.op!, station.vj!, station.vk!);
-                    if (computedValue === 8) {
-                        if (station.op === "SUBI") console.log("And computed the correct value as expected aho");
-                    }
+                    // if (computedValue === 8) {
+                    //     if (station.op === "SUBI") console.log("And computed the correct value as expected aho");
+                    // }
 
                     if (station.op === "BNEZ") {
                         if (computedValue === 1) {
                             this.registerFile.setPCRegisterValue(station.A!);
                         }
-
-                        this.BNEZStationToBeCleared.tag = station.tag;
+                        copyFieldsFromSecondIntoFirst(this.BNEZStationToBeCleared, station);
                     } else {
-                        if (station.op === "SUBI") console.log("Kollo tmam. We have to dig deeper");
+                        // if (station.op === "SUBI") console.log("Kollo tmam. We have to dig deeper");
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
                     }
                     stationAluElement.setBusy(0);
@@ -139,9 +139,7 @@ class ExecuteHandler {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
-                    this.executeStore(buffer);
-                    // this.tagsToBeCleared.push(buffer.tag);
-                    this.storeBufferToBeCleared.tag = buffer.tag;
+                    copyFieldsFromSecondIntoFirst(this.storeBufferToBeCleared, buffer);
                 }
             }
         }
@@ -193,15 +191,16 @@ class ExecuteHandler {
         return firstTagTime > secondTagTime;
     }
 
-    private executeStore(storeBuffer: StoreBuffer) {
-        const { address, v } = storeBuffer;
-        this.dataCache.write(address!, v!);
-    }
-
     private executeLoad(loadBuffer: LoadBuffer) {
         const { address } = loadBuffer!;
         return this.dataCache.read(address!);
     }
 }
+
+const copyFieldsFromSecondIntoFirst = (first: any, second: any) => {
+    Object.keys(first).forEach((key) => {
+        first[key] = second[key];
+    });
+};
 
 export default ExecuteHandler;

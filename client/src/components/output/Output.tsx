@@ -38,7 +38,9 @@ const Output = () => {
             setIsLoading(false);
         };
         fetchTomasuloData();
+    }, []);
 
+    useEffect(() => {
         const handleKeyUp = (event: KeyboardEvent) => {
             switch (event.key) {
                 case "ArrowLeft":
@@ -51,20 +53,22 @@ const Output = () => {
                     break;
             }
         };
-        
+
         window.addEventListener("keyup", handleKeyUp);
-        
+
         return () => {
             window.removeEventListener("keyup", handleKeyUp);
         };
     }, []);
 
     const incrementCycle = () => {
-        setCycleNumber((prevCycleNumber) => prevCycleNumber + 1 < tomasuloInstances.length ? prevCycleNumber + 1 : prevCycleNumber);
+        setCycleNumber((prevCycleNumber) =>
+            prevCycleNumber + 1 < tomasuloInstances.length ? prevCycleNumber + 1 : prevCycleNumber
+        );
     };
 
     const decrementCycle = () => {
-        setCycleNumber((prevCycleNumber) =>  prevCycleNumber > 0 ? prevCycleNumber - 1 : 0);
+        setCycleNumber((prevCycleNumber) => (prevCycleNumber > 0 ? prevCycleNumber - 1 : 0));
     };
 
     if (isLoading) {
@@ -110,8 +114,8 @@ const Output = () => {
                                     Op: station.op,
                                     Vj: station.vj,
                                     Vk: station.vk,
-                                    Qj: station.qj,
-                                    Qk: station.qk,
+                                    Qj: station.qj || 0,
+                                    Qk: station.qk || 0,
                                     A: station.A
                                 }))}
                             />
@@ -128,8 +132,8 @@ const Output = () => {
                                     Op: station.op,
                                     Vj: station.vj,
                                     Vk: station.vk,
-                                    Qj: station.qj,
-                                    Qk: station.qk,
+                                    Qj: station.qj || 0,
+                                    Qk: station.qk || 0,
                                     A: station.A
                                 }))}
                             />
@@ -158,7 +162,7 @@ const Output = () => {
                                     Busy: buffer.busy,
                                     Address: buffer.address,
                                     V: buffer.v,
-                                    Q: buffer.q
+                                    Q: buffer.q || 0
                                 }))}
                             />
                         </Box>

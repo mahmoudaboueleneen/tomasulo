@@ -19,6 +19,9 @@ import Tag from "../types/Tag";
 import TagValuePair from "../interfaces/TagValuePair";
 import TomasuloInstance from "../types/TomasuloInstance";
 import { mapToDataArray, mapToRegisterArray } from "../utils/jsonMapHandler";
+import V from "../types/V";
+import StoreBufferToBeCleared from "../types/StoreBufferToBeCleared";
+import BNEZStationToBeCleared from "../types/BNEZStationToBeCleared";
 
 class Tomasulo {
     private instructionCache: InstructionCache;
@@ -35,8 +38,8 @@ class Tomasulo {
     private FPMultipliers: FPMultiplier[];
     private tagsToBeCleared: Tag[];
     private contentToBeWrittenToPCRegister: { content: number | null };
-    private storeBufferToBeCleared: { tag: Tag };
-    private BNEZStationToBeCleared: { tag: Tag };
+    private storeBufferToBeCleared: StoreBufferToBeCleared;
+    private BNEZStationToBeCleared: BNEZStationToBeCleared;
 
     // Taken as input from the user
     private FPAddLatency: number;
@@ -113,7 +116,7 @@ class Tomasulo {
         this.tagsToBeCleared = [];
         this.contentToBeWrittenToPCRegister = { content: null };
 
-        this.storeBufferToBeCleared = { tag: null };
+        this.storeBufferToBeCleared = { tag: null, address: null, v: null };
         this.BNEZStationToBeCleared = { tag: null };
 
         this.FPAddLatency = FPAddLatency;
@@ -202,7 +205,9 @@ class Tomasulo {
             this.finishedTagValuePairs,
             this.tagsToBeCleared,
             this.storeBufferToBeCleared,
-            this.BNEZStationToBeCleared
+            this.dataCache,
+            this.BNEZStationToBeCleared,
+            this.registerFile
         ).handleWriting();
     }
 
@@ -249,7 +254,15 @@ class Tomasulo {
     }
 
     private fetch() {
-        new FetchHandler(this.instructionCache, this.instructionQueue).handleFetching();
+        new FetchHandler(this.instructionCache, this.instructionQueue, this.canContinueFetching()).handleFetching();
+    }
+
+    private canContinueFetching() {
+        return (
+            this.addSubReservationStations.every((station) => station.op !== "BNEZ") ||
+            (this.addSubReservationStations.some((station) => station.busy === 1 && station.op === "BNEZ") &&
+                this.tagsToBeCleared.includes(this.BNEZStationToBeCleared.tag))
+        );
     }
 
     private update() {
