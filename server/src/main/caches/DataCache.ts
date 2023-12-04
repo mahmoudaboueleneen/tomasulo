@@ -42,7 +42,7 @@ class DataCache {
         return this.runningBufferTag !== null;
     }
 
-    isFilledWithTag(tag: Tag): boolean {
+    isInstructionTagExecuting(tag: Tag): boolean {
         return this.runningBufferTag === tag;
     }
 

@@ -3,6 +3,7 @@ import BNEZStationToBeCleared from "../../../types/BNEZStationToBeCleared";
 import StoreBufferToBeCleared from "../../../types/StoreBufferToBeCleared";
 import Tag from "../../../types/Tag";
 import CommonDataBus from "../../CommonDataBus";
+import ExecutionSummaryTable from "../../ExecutionSummaryTable";
 import RegisterFile from "../../RegisterFile";
 import StoreBuffer from "../../buffers/StoreBuffer";
 import DataCache from "../../caches/DataCache";
@@ -15,7 +16,10 @@ class WriteHandler {
     private storeBufferToBeCleared: StoreBufferToBeCleared;
     private dataCache: DataCache;
     private BNEZStationToBeCleared: BNEZStationToBeCleared;
-    private registerFile: RegisterFile;
+
+    private executionSummaryTable: ExecutionSummaryTable;
+    private currentClockCycle: number;
+    private currentIterationInCode: number | null;
 
     constructor(
         commonDataBus: CommonDataBus,
@@ -24,7 +28,9 @@ class WriteHandler {
         storeBufferToBeCleared: StoreBufferToBeCleared,
         dataCache: DataCache,
         BNEZStationToBeCleared: BNEZStationToBeCleared,
-        registerFile: RegisterFile
+        executionSummaryTable: ExecutionSummaryTable,
+        currentClockCycle: number,
+        currentIterationInCode: number | null
     ) {
         this.commonDataBus = commonDataBus;
         this.finishedTagValuePairs = finishedTagValuePairs;
@@ -34,7 +40,10 @@ class WriteHandler {
         this.dataCache = dataCache;
 
         this.BNEZStationToBeCleared = BNEZStationToBeCleared;
-        this.registerFile = registerFile;
+
+        this.executionSummaryTable = executionSummaryTable;
+        this.currentClockCycle = currentClockCycle;
+        this.currentIterationInCode = currentIterationInCode;
     }
 
     public handleWriting() {
@@ -56,6 +65,8 @@ class WriteHandler {
             const { tag, value } = nextPair;
             this.commonDataBus.write(tag, value);
             this.tagsToBeCleared.push(tag);
+
+            this.executionSummaryTable.addWriteResultCycle(tag, this.currentClockCycle);
         }
         if (
             this.storeBufferToBeCleared.tag &&
@@ -65,11 +76,18 @@ class WriteHandler {
             this.storeValueInDataCache(this.storeBufferToBeCleared.address, this.storeBufferToBeCleared.v);
             this.tagsToBeCleared.push(this.storeBufferToBeCleared.tag);
 
+            this.executionSummaryTable.addWriteResultCycle(this.storeBufferToBeCleared.tag, this.currentClockCycle);
+
             clearStoreBuffer(this.storeBufferToBeCleared);
         }
 
         if (this.BNEZStationToBeCleared.tag) {
             this.tagsToBeCleared.push(this.BNEZStationToBeCleared.tag);
+
+            if (this.BNEZStationToBeCleared.executionResult === 1 && this.currentIterationInCode !== null) {
+                this.currentIterationInCode++;
+            }
+            this.executionSummaryTable.addWriteResultCycle(this.BNEZStationToBeCleared.tag, this.currentClockCycle);
         }
 
         function clearStoreBuffer(storeBufferToBeCleared: StoreBufferToBeCleared) {
