@@ -58,6 +58,7 @@ class ExecutionSummaryTable {
         const recordHavingTag = this.table.find((record) => record.instructionTag === tag);
         if (!recordHavingTag) throw new Error(`Record with tag ${tag} not found, cannot add write result cycle`);
         recordHavingTag.writeResultCycle = cycle;
+        recordHavingTag.instructionTag = null;
     }
 
     getTable(): SummaryTableRecord[] {

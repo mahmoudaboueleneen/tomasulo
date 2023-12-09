@@ -10,24 +10,27 @@ This report assumes the reader already has knowledge and understanding of the te
 
 ## Table of Contents
 
--   [Architecture and Design](#architecture-and-design)
-    -   [The Tomasulo Algorithm](#the-tomasulo-algorithm)
-    -   [The Tomasulo Architecture](#the-tomasulo-architecture)
-    -   [Application Data Flow](#application-data-flow)
-    -   [OO Design](#oo-design)
-    -   [Technology Stack](#technology-stack)
--   [Implementation](#implementation)
-    -   [Overview](#overview)
-    -   [Backend](#backend)
-    -   [Frontend](#frontend)
-    -   [Code Structure](#code-structure)
-    -   [Workflow](#workflow)
--   [Testing](#testing)
-    -   [Running the Code](#running-the-code)
-    -   [Test Cases](#test-cases)
--   [Appendix](#appendix)
-    -   [The N-1 Bug](#the-n-1-bug)
-    -   [To Simulate or Not to Simulate](#to-simulate-or-not-to-simulate)
+-   [Report](#report)
+    -   [Prerequisites](#prerequisites)
+    -   [Table of Contents](#table-of-contents)
+    -   [Architecture and Design](#architecture-and-design)
+        -   [The Tomasulo Algorithm](#the-tomasulo-algorithm)
+        -   [The Tomasulo Architecture](#the-tomasulo-architecture)
+        -   [Application Data Flow](#application-data-flow)
+        -   [OO Design](#oo-design)
+        -   [Technology Stack](#technology-stack)
+    -   [Implementation](#implementation)
+        -   [Overview](#overview)
+        -   [Backend](#backend)
+        -   [Frontend](#frontend)
+        -   [Code Structure](#code-structure)
+        -   [Workflow](#workflow)
+    -   [Testing](#testing)
+        -   [Running the Code](#running-the-code)
+        -   [Test Cases](#test-cases)
+    -   [Appendix](#appendix)
+        -   [The N-1 Bug](#the-n-1-bug)
+        -   [To Simulate or Not to Simulate](#to-simulate-or-not-to-simulate)
 
 ## Architecture and Design
 
@@ -53,34 +56,39 @@ Clock Cycle:
    Before Issuing:
       Decode Instruction.
       If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
-      && In case of Load there is no Store manipulating the same address in the Buffers
+      && In case of Load there is no Store manipulating the same address in the Buffers (eliminating RAW hazard),
+      && In case of Store there is not either a Load or a Store manipulating the same address in the Buffers. (eliminating WAR and WAW hazards),
+      Otherwise; instruction won't be issued and will remain in the Instructions Queue.
+
 
       Then,
        - Issue Instruction to its Buffer/Station,
        - Set the Buffer/Station to busy,
        - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the
          tag of the Buffer/Station that the Instruction has been added to,
-       - Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
+       - Add to a Hash Map ==> Key: Tag of the Buffer/Station, Value: Cycle Number that it's issued in (tracking when each instruction was issued exactly).
 
-   If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers)
+   If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers):
+
       Check Operand Registers in the Register File:
-      If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk.
-      Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
+         If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk.
+         Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
 
 
 2. (Execute)
 
-   For each Station, if it has Qj and Qk both equal 0, Execute (Decrement Cycles Left).
-   For each Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
-   Each instruction keeps executing according to its required number of cycles to finish.
+   - For each Station, if it has Qj and Qk both equal 0, Execute(Decrement Cycles Left).
+
+   - For each Load or Store Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
+
+   - Each instruction keeps executing according to its required number of cycles to finish.
    If it's a Store, wait for the value to be stored to be ready before Executing.
 
-   We will use an array of finishedInstructions which we will add an Object {tag, value} of the finished instruction to,
-   to later in the next stage be used to select one instruction from (based on FIFO) to write to the bus.
+   - We will use an array of finishedInstructions in which we will add an Object {tag, value} of the finished instruction to,
+   to later in the next stage be used to select one instruction only to publish its value and tag to the Bus(based on FIFO) using the HashMap in the issue stage (storing the clock cycle in which each instruction was issued).
    Thus, this array will be sorted based on the clock cycle number that the instruction was issued in.
-
    So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions
-   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus.
+   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus, and excluding the BNEZ instruction also as it doesn't write anything to the Bus, it directly update the PC register value if it is successful.
 
 
 3. (Write Result)
@@ -123,7 +131,13 @@ We have also made a list of assumptions with regards to the algorithm, hardware 
 
 Here are our assumptions:
 
--   For adding a label, the label must end with a ':' or ',' and when executing a branch instruction to jump to this label, the branch instruction should have the label without this last character. For example:
+-   All events are shown describing what occurs at the of the currently displayed clock cycle.
+
+-   The Tomasulo algorithm starts from clock cycle 0, having the first instruction fetched at the end of the cycle.
+
+-   Assuming the fetch, write result and the issue stage take one cycle for all instructions, where in the issue stage (the first half decoding occurs, and the second half stations, buffers and register file assignments occurs).
+
+-   Regarding the instructions syntax, for adding a label, the label must end with a ':'. When executing a branch instruction to jump to this label, the branch instruction should have the label without ':'. For example:
 
          LOOP: L.D F1, 0
          BNEZ R1, LOOP
@@ -138,6 +152,18 @@ Here are our assumptions:
          R2, R3
 
 -   If two instructions finish at the same time and want to write to the bus, we pick the one which came first. (FIFO)
+
+-   When issuing a BNEZ instruction in an Add/Sub station, we put the operand register (whose value we evaluate against 0), in Vj if it is not used by another instruction and in Qj if otherwise, and also we put the address of the referenced label in the A field of the station.
+
+-   As long as a BNEZ instruction is not done, we cannot fetch no more instructions, aka. a stall occurs (to avoid fetching the wrong instruction).
+
+-   No two stores or a load and a store referencing the same memory address can exist in the Buffers. One only must be issued to avoid any kind of memory related hazards.
+
+-   Multiple loads and stores can exist in the buffers at the same time as long as they are referencing different memory addresses, but only one load or store is allowed to execute in the memory at a time, no other loads or stores can execute concurrently.
+
+-   When it is time for picking which load of the Load buffers or store of the Store buffers to execute, we pick based on FIFO to ensure that no particular instruction is waiting for a long period, then the memory is marked as busy and other loads and stores must wait for it to finish.
+
+-   There are only one type of Adders and Multipliers supporting both integer and floating point instructions, recognizing them based on a control input.
 
 ### The Tomasulo Architecture
 
@@ -299,8 +325,18 @@ This was enough for us initially when testing using the CLI. However, we later t
 ### Test Cases
 
 ```
-TODO:
-ADD THE TEST CASES
+We tested the correctness of our implemented algorithm using the following instruction test cases:
+
+1)
+ADDI R1, R1, 16
+LOOP: L.D F4, 0
+MUL.D F4, F4, F2
+S.D F4, 0
+SUBI R1, R1, 8
+BNEZ R1, LOOP
+
+it was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address.
+
 ```
 
 ## Appendix
