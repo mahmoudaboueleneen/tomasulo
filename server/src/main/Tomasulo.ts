@@ -60,6 +60,13 @@ class Tomasulo {
     private executionSummaryTable: ExecutionSummaryTable;
     private currentIterationInCode: number | null;
 
+    getCurrentIterationInCode() {
+        return this.currentIterationInCode;
+    }
+    incrementCurrentIterationInCode() {
+        if (this.currentIterationInCode !== null) this.currentIterationInCode++;
+    }
+
     constructor(
         instructions: string[],
         addSubReservationStationCount: number,
@@ -210,7 +217,7 @@ class Tomasulo {
             this.BNEZStationToBeCleared,
             this.executionSummaryTable,
             this.currentClockCycle,
-            this.currentIterationInCode
+            this
         ).handleWriting();
     }
 

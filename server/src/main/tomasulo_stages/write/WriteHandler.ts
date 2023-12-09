@@ -5,6 +5,7 @@ import Tag from "../../../types/Tag";
 import CommonDataBus from "../../CommonDataBus";
 import ExecutionSummaryTable from "../../ExecutionSummaryTable";
 import RegisterFile from "../../RegisterFile";
+import Tomasulo from "../../Tomasulo";
 import StoreBuffer from "../../buffers/StoreBuffer";
 import DataCache from "../../caches/DataCache";
 import AddSubReservationStation from "../../reservation_stations/AddSubReservationStation";
@@ -19,7 +20,8 @@ class WriteHandler {
 
     private executionSummaryTable: ExecutionSummaryTable;
     private currentClockCycle: number;
-    private currentIterationInCode: number | null;
+
+    private tomasulo: Tomasulo;
 
     constructor(
         commonDataBus: CommonDataBus,
@@ -30,7 +32,7 @@ class WriteHandler {
         BNEZStationToBeCleared: BNEZStationToBeCleared,
         executionSummaryTable: ExecutionSummaryTable,
         currentClockCycle: number,
-        currentIterationInCode: number | null
+        tomasulo: Tomasulo
     ) {
         this.commonDataBus = commonDataBus;
         this.finishedTagValuePairs = finishedTagValuePairs;
@@ -43,7 +45,7 @@ class WriteHandler {
 
         this.executionSummaryTable = executionSummaryTable;
         this.currentClockCycle = currentClockCycle;
-        this.currentIterationInCode = currentIterationInCode;
+        this.tomasulo = tomasulo;
     }
 
     public handleWriting() {
@@ -84,8 +86,8 @@ class WriteHandler {
         if (this.BNEZStationToBeCleared.tag) {
             this.tagsToBeCleared.push(this.BNEZStationToBeCleared.tag);
 
-            if (this.BNEZStationToBeCleared.executionResult === 1 && this.currentIterationInCode !== null) {
-                this.currentIterationInCode++;
+            if (this.BNEZStationToBeCleared.executionResult === 1) {
+                this.tomasulo.incrementCurrentIterationInCode();
             }
             this.executionSummaryTable.addWriteResultCycle(this.BNEZStationToBeCleared.tag, this.currentClockCycle);
         }
