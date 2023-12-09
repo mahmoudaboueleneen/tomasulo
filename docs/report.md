@@ -42,90 +42,66 @@ Due to the heavy dependencies of the features of this program on each other, and
 
 Here is our written draft of the algorithm. (Please note that this was built upon and further advanced and any other details not mentioned here have been taken into consideration in the actual implementation)
 
-```
-Clock Cycle:
-------------
--1. Read instructions and load them into Instruction Cache.
+#### Clock Cycle:
 
+-1: Read instructions and load them into Instruction Cache.
 
-0. Fetch instruction from Instruction Cache into Instruction Queue.
+0: Fetch instruction from Instruction Cache into Instruction Queue.
 
+1: (Issue & Read Operands)
 
-1. (Issue & Read Operands)
+Before Issuing:
 
-   Before Issuing:
-      Decode Instruction.
-      If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
-      && In case of Load there is no Store manipulating the same address in the Buffers (eliminating RAW hazard),
-      && In case of Store there is not either a Load or a Store manipulating the same address in the Buffers. (eliminating WAR and WAW hazards),
-      Otherwise; instruction won't be issued and will remain in the Instructions Queue.
+-   Decode Instruction.
+-   If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
+    && In case of Load there is no Store manipulating the same address in the Buffers (eliminating RAW hazard),
+    && In case of Store there is not either a Load or a Store manipulating the same address in the Buffers. (eliminating WAR and WAW hazards),
+    Otherwise; instruction won't be issued and will remain in the Instructions Queue.
 
+    Then, - Issue Instruction to its Buffer/Station, - Set the Buffer/Station to busy, - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the tag of the Buffer/Station that the Instruction has been added to, - Add to a Hash Map ==> Key: Tag of the Buffer/Station, Value: Cycle Number that it's issued in (tracking when each instruction was issued exactly).
 
-      Then,
-       - Issue Instruction to its Buffer/Station,
-       - Set the Buffer/Station to busy,
-       - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the
-         tag of the Buffer/Station that the Instruction has been added to,
-       - Add to a Hash Map ==> Key: Tag of the Buffer/Station, Value: Cycle Number that it's issued in (tracking when each instruction was issued exactly).
+    If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers):
 
-   If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers):
+Check Operand Registers in the Register File:
 
-      Check Operand Registers in the Register File:
-         If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk.
-         Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
+-   If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk. Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
 
+2: (Execute)
 
-2. (Execute)
+-   For each Station, if it has Qj and Qk both equal 0, Execute(Decrement Cycles Left).
+-   For each Load or Store Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
+-   Each instruction keeps executing according to its required number of cycles to finish. If it's a Store, wait for the value to be stored to be ready before Executing.
+-   We will use an array of finishedInstructions in which we will add an Object {tag, value} of the finished instruction to, to later in the next stage be used to select one instruction only to publish its value and tag to the Bus(based on FIFO) using the HashMap in the issue stage (storing the clock cycle in which each instruction was issued). Thus, this array will be sorted based on the clock cycle number that the instruction was issued in. So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions except if it's a store instruction we don't add it to the array as it won't publish anything to the bus, and excluding the BNEZ instruction also as it doesn't write anything to the Bus, it directly update the PC register value if it is successful.
 
-   - For each Station, if it has Qj and Qk both equal 0, Execute(Decrement Cycles Left).
+3: (Write Result)
 
-   - For each Load or Store Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
+-   If Finished Instructions Array is empty, Return.
 
-   - Each instruction keeps executing according to its required number of cycles to finish.
-   If it's a Store, wait for the value to be stored to be ready before Executing.
+-   Remove an instruction {tag, value} from the Finished Instructions Array And Write that instruction's result to the Bus.
 
-   - We will use an array of finishedInstructions in which we will add an Object {tag, value} of the finished instruction to,
-   to later in the next stage be used to select one instruction only to publish its value and tag to the Bus(based on FIFO) using the HashMap in the issue stage (storing the clock cycle in which each instruction was issued).
-   Thus, this array will be sorted based on the clock cycle number that the instruction was issued in.
-   So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions
-   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus, and excluding the BNEZ instruction also as it doesn't write anything to the Bus, it directly update the PC register value if it is successful.
+-   Find the station/buffer that has the same tag as that on the bus and clear it and unset the station/buffer busy status and for load/store unset the memory busy status as well.
 
+-   For each Station:
+    If the Station has Qj equals the tag published on the bus
+    Set Qj to 0.
+    Set Vj to the value from the bus.
+    If the Station has Qk equals the tag published on the bus
+    Set Qk to 0.
+    Set Vk to the value from the bus.
 
-3. (Write Result)
+-   For each StoreBuffer:
+    If the StoreBuffer has Q equals the tag published on the bus
+    Set Q to 0.
+    Set V to the value from the bus.
 
-   If Finished Instructions Array is empty,
-      Return.
+-   For each Register in the RegisterFile:
+    If the Register's Qi equals the tag published on the bus
+    Set Qi to 0.
+    Set content to the value from the bus.
 
-   Remove an instruction {tag, value} from the Finished Instructions Array
-   And Write that instruction's result to the Bus.
+    (Note: Load Buffers don't need updating as they only have effective address)
 
-   Find the station/buffer that has the same tag as that on the bus and clear it and
-   unset the station/buffer busy status and for load/store unset the memory busy status as well.
-
-   For each Station
-      If the Station has Qj equals the tag published on the bus
-         Set Qj to 0.
-         Set Vj to the value from the bus.
-      If the Station has Qk equals the tag published on the bus
-         Set Qk to 0.
-         Set Vk to the value from the bus.
-
-   For each StoreBuffer
-      If the StoreBuffer has Q equals the tag published on the bus
-         Set Q to 0.
-         Set V to the value from the bus.
-
-   For each Register in the RegisterFile
-      If the Register's Qi equals the tag published on the bus
-         Set Qi to 0.
-         Set content to the value from the bus.
-
-   (Note: Load Buffers don't need updating as they only have effective address)
-
-=================================================================
-vars to track: clockCycleNumber, cyclesLeft (for each instruction)
-
-```
+### Assumptions
 
 We have also made a list of assumptions with regards to the algorithm, hardware architecture, instruction syntax, and more.
 
@@ -255,64 +231,66 @@ Our codebase is split into two main folders (excluding the docs folder and any o
 Here is our project's file tree with some omissions for simplification.
 
 ```
+
 .
 ├───client
-│   ├───sample_programs
-│   └───src
-│       ├───components
-│       │   ├───input
-|       |   │   └───  <----------------- Input components
-│       │   └───output
-|       |       └───  <----------------- Output components
-│       ├───constants
-│       ├───contexts
-│       ├───interfaces
-│       ├───schemas
-│       ├───types
-│       └───utils
+│ ├───sample_programs
+│ └───src
+│ ├───components
+│ │ ├───input
+| | │ └─── <----------------- Input components
+│ │ └───output
+| | └─── <----------------- Output components
+│ ├───constants
+│ ├───contexts
+│ ├───interfaces
+│ ├───schemas
+│ ├───types
+│ └───utils
 ├───docs
 └───server
-    └───src
-        ├───constants
-        ├───interfaces
-        ├───main <----------------- Main backend logic, containing all the classes
-        │   ├───arithmetic_units
-        │   │   ├───AluElement.ts
-        │   │   ├───FPAdder.ts
-        │   │   └───FPMultiplier.ts
-        │   ├───buffers
-        │   │   ├───Buffer.ts
-        │   │   ├───LoadBuffer.ts
-        │   │   └───StoreBuffer.ts
-        │   ├───caches
-        │   │   ├───DataCache.ts
-        │   │   └───InstructionCache.ts
-        │   ├───reservation_stations
-        │   │   ├───AddSubReservationStation.ts
-        │   │   ├───MulDivReservationStation.ts
-        │   │   └───ReservationStation.ts
-        │   └───tomasulo_stages <----------------- Main pipeline stages along with other minor helping stages
-        │       ├───clear
-        │       │   └───ClearHandler.ts
-        │       ├───execute
-        │       │   └───ExecuteHandler.ts
-        │       ├───fetch
-        │       │   └───FetchHandler.ts
-        │       ├───issue
-        │       │   ├───DecodeHandler.ts
-        │       │   └───IssueHandler.ts
-        │       ├───update
-        │       │   └───UpdateHandler.ts
-        │       ├───write
-        │       │   └───WriteHandler.ts
-        │       ├───CommonDataBus.ts
-        │       ├───InstructionQueue.ts
-        │       ├───RegisterFile.ts
-        │       └───Tomasulo.ts <----------------- Main class holding the main program loop
-        ├───types
-        │   └───enums
-        ├───utils
-        └───index.ts <----------------- Server file
+└───src
+├───constants
+├───interfaces
+├───main <----------------- Main backend logic, containing all the classes
+│ ├───arithmetic_units
+│ │ ├───AluElement.ts
+│ │ ├───FPAdder.ts
+│ │ └───FPMultiplier.ts
+│ ├───buffers
+│ │ ├───Buffer.ts
+│ │ ├───LoadBuffer.ts
+│ │ └───StoreBuffer.ts
+│ ├───caches
+│ │ ├───DataCache.ts
+│ │ └───InstructionCache.ts
+│ ├───reservation_stations
+│ │ ├───AddSubReservationStation.ts
+│ │ ├───MulDivReservationStation.ts
+│ │ └───ReservationStation.ts
+│ └───tomasulo_stages <----------------- Main pipeline stages along with other minor helping stages
+│ ├───clear
+│ │ └───ClearHandler.ts
+│ ├───execute
+│ │ └───ExecuteHandler.ts
+│ ├───fetch
+│ │ └───FetchHandler.ts
+│ ├───issue
+│ │ ├───DecodeHandler.ts
+│ │ └───IssueHandler.ts
+│ ├───update
+│ │ └───UpdateHandler.ts
+│ ├───write
+│ │ └───WriteHandler.ts
+│ ├───CommonDataBus.ts
+│ ├───InstructionQueue.ts
+│ ├───RegisterFile.ts
+│ └───Tomasulo.ts <----------------- Main class holding the main program loop
+├───types
+│ └───enums
+├───utils
+└───index.ts <----------------- Server file
+
 ```
 
 ### Workflow
@@ -368,7 +346,7 @@ BNEZ R1, LOOP
 | `Add/Sub`           | `2`  |
 | `Mul/Div`           | `2`  |
 
-![Test Case 1](https://private-user-images.githubusercontent.com/93436246/289310442-bc2b9dd1-0457-43a1-84f6-4784692a6a55.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTMwMDMsIm5iZiI6MTcwMjE1MjcwMywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA0NDItYmMyYjlkZDEtMDQ1Ny00M2ExLTg0ZjYtNDc4NDY5MmE2YTU1LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMTE0M1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTJmZDU5OTMyNTdmYWZmN2E3NzJmZTg3MWM3MGMyNDM0NWI5MThiNWJmNjlhM2FlZjUyMjFmOTllOWJkYWU1N2UmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.xtNmTclF_ICQ1oEhLTBtBqQoEiviV1uydAGukOE5KEg)
+![Test Case 1](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_1.png?raw=true)
 
 #### Test Case #2:
 
@@ -400,7 +378,7 @@ SUBI R6, R5, 8
 | `Add/Sub`           | `1`  |
 | `Mul/Div`           | `1`  |
 
-![Test Case 2](https://private-user-images.githubusercontent.com/93436246/289310751-7053a91f-ae59-4e18-81b8-641c77bc1753.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTM0OTMsIm5iZiI6MTcwMjE1MzE5MywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA3NTEtNzA1M2E5MWYtYWU1OS00ZTE4LTgxYjgtNjQxYzc3YmMxNzUzLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMTk1M1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWQxYmQxYzQ5MjJmMDhjMThkMzAzZTcyMjBmOTkzZWY1ZmJkYzM2ZDNmYTEyMDA3Mzc2NzFhYzE2NTUzODJjNzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.teiQA1KirIQ_4pPF4yfR4eSOx62izFDCfa4gouKW_-Y)
+![Test Case 2](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_2.png?raw=true)
 
 #### Test Case #3:
 
@@ -432,7 +410,7 @@ L.D F5, 100
 | `Add/Sub`           | `2`  |
 | `Mul/Div`           | `2`  |
 
-![Test Case 3](https://private-user-images.githubusercontent.com/93436246/289310935-142e7c70-f402-4505-a94f-8180bedd2c3d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTM4MDQsIm5iZiI6MTcwMjE1MzUwNCwicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA5MzUtMTQyZTdjNzAtZjQwMi00NTA1LWE5NGYtODE4MGJlZGQyYzNkLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMjUwNFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWFjNzM1ZGU3MzNlYjVhNTJiY2M1MTg0NmFmYTU1ZmRjN2VjMGYxMTRlMWJjYjM1NDA5MDk5MDRiNjJkMGQzYjQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.Hjbm-5_ALnK4WsPNni_AOi5Pt-fA60BV07nHmR0obuE)
+![Test Case 3](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_3.png?raw=true)
 
 #### Test Case #4:
 
@@ -465,7 +443,7 @@ DIV.D F6, F4, F4
 | `Add/Sub`           | `1`  |
 | `Mul/Div`           | `1`  |
 
-![Test Case 4](https://private-user-images.githubusercontent.com/93436246/289311263-d994a7f5-0d5f-4f76-bc38-8002a54756d7.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTQyNzcsIm5iZiI6MTcwMjE1Mzk3NywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTEyNjMtZDk5NGE3ZjUtMGQ1Zi00Zjc2LWJjMzgtODAwMmE1NDc1NmQ3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMzI1N1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTk2MTk4MzU3YmNjMTZjMDFkMjcyNzA4NzI4YTUzZDRmNjA4NGE2YjE2YjQ0ZDQ3NzlkNWM4NjAxOTE1YmYzNjImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.yUXh0k7EkPrB6mmyn2XW3ApSvgv81Hbuw-u45K0ejKU)
+![Test Case 4](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_4.png?raw=true)
 
 ## Appendix
 
