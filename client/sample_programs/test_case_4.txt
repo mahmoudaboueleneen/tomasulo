@@ -1,0 +1,6 @@
+L.D F4, 90
+S.D F4, 90
+DIV.D F5, F4, F5
+ADD.D F6, F4, F5
+MUL.D F4, F4, F6
+DIV.D F6, F4, F4

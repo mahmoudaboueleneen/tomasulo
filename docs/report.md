@@ -137,15 +137,20 @@ Here are our assumptions:
 
 -   Assuming the fetch, write result and the issue stage take one cycle for all instructions, where in the issue stage (the first half decoding occurs, and the second half stations, buffers and register file assignments occurs).
 
--   Regarding the instructions syntax, for adding a label, the label must end with a ':'. When executing a branch instruction to jump to this label, the branch instruction should have the label without ':'. For example:
+-   Regarding the instructions syntax, for adding a label, the label must end with a colon (':'). When executing a branch instruction to jump to this label, the branch instruction should have the label without a colon (':'). For example:
 
          LOOP: L.D F1, 0
          BNEZ R1, LOOP
 
--   Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value
+-   Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value.
 
-         [THIS] L.D F2, 100
-         [NOT THIS] L.D F2, 32(R2)
+    So this:
+
+         L.D F2, 100
+
+    Not this:
+
+         L.D F2, 32(R2)
 
 -   In an instruction, fields following the operation field are separated from each other by a comma and a space.
 
@@ -167,7 +172,7 @@ Here are our assumptions:
 
 -   Only a store/load existing in store/load buffer can execute in the cycle after an executing store (for both load and store) and load (for a store only) writes its result.
 
--   When a structural hazard occurs (all buffers or stations are busy), and instruction is issued in the cycle after one of the busy stations/buffers instruction writes its result.
+-   When a structural hazard occurs (all buffers or stations are busy), an instruction can be issued in the cycle after one of the busy stations/buffers writes its result.
 
 ### The Tomasulo Architecture
 
@@ -328,22 +333,139 @@ This was enough for us initially when testing using the CLI. However, we later t
 
 ### Test Cases
 
-```
-We tested the correctness of our implemented algorithm using the following instruction test cases:
+We tested the correctness of our codebase by running many test cases. The following are some of them.
 
-1)
+#### Test Case #1:
+
+It was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address.
+
+```asm
 ADDI R1, R1, 16
 LOOP: L.D F4, 0
 MUL.D F4, F4, F2
 S.D F4, 0
 SUBI R1, R1, 8
 BNEZ R1, LOOP
-
-it was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address. It was tested with sizes of station and buffers once equal to 1 and once equal to 2
-
-
-
 ```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `2`     |
+| `FP Subtract`    | `2`     |
+| `FP Multiply`    | `3`     |
+| `FP Divide`      | `3`     |
+| `Int Subtract`   | `1`     |
+| `Load`           | `2`     |
+| `Store`          | `2`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `2`  |
+| `Store` | `2`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `2`  |
+| `Mul/Div`           | `2`  |
+
+![Test Case 1](https://private-user-images.githubusercontent.com/93436246/289310442-bc2b9dd1-0457-43a1-84f6-4784692a6a55.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTMwMDMsIm5iZiI6MTcwMjE1MjcwMywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA0NDItYmMyYjlkZDEtMDQ1Ny00M2ExLTg0ZjYtNDc4NDY5MmE2YTU1LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMTE0M1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTJmZDU5OTMyNTdmYWZmN2E3NzJmZTg3MWM3MGMyNDM0NWI5MThiNWJmNjlhM2FlZjUyMjFmOTllOWJkYWU1N2UmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.xtNmTclF_ICQ1oEhLTBtBqQoEiviV1uydAGukOE5KEg)
+
+#### Test Case #2:
+
+```asm
+ADDI R1, R1, 16
+MUL.D F4, F4, F2
+DIV.D F4, F5, F5
+S.D F4, 0
+SUBI R6, R5, 8
+```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `3`     |
+| `FP Subtract`    | `3`     |
+| `FP Multiply`    | `10`    |
+| `FP Divide`      | `20`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `2`     |
+| `Store`          | `2`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `1`  |
+| `Store` | `1`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `1`  |
+| `Mul/Div`           | `1`  |
+
+![Test Case 2](https://private-user-images.githubusercontent.com/93436246/289310751-7053a91f-ae59-4e18-81b8-641c77bc1753.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTM0OTMsIm5iZiI6MTcwMjE1MzE5MywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA3NTEtNzA1M2E5MWYtYWU1OS00ZTE4LTgxYjgtNjQxYzc3YmMxNzUzLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMTk1M1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWQxYmQxYzQ5MjJmMDhjMThkMzAzZTcyMjBmOTkzZWY1ZmJkYzM2ZDNmYTEyMDA3Mzc2NzFhYzE2NTUzODJjNzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.teiQA1KirIQ_4pPF4yfR4eSOx62izFDCfa4gouKW_-Y)
+
+#### Test Case #3:
+
+```asm
+DIV.D F4, F5, F5
+DIV.D F4, F5, F5
+MUL.D F4, F4, F2
+ADD.D F4, F4, F4
+L.D F5, 100
+```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `3`     |
+| `FP Subtract`    | `5`     |
+| `FP Multiply`    | `8`     |
+| `FP Divide`      | `12`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `3`     |
+| `Store`          | `3`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `2`  |
+| `Store` | `2`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `2`  |
+| `Mul/Div`           | `2`  |
+
+![Test Case 3](https://private-user-images.githubusercontent.com/93436246/289310935-142e7c70-f402-4505-a94f-8180bedd2c3d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTM4MDQsIm5iZiI6MTcwMjE1MzUwNCwicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTA5MzUtMTQyZTdjNzAtZjQwMi00NTA1LWE5NGYtODE4MGJlZGQyYzNkLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMjUwNFomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPWFjNzM1ZGU3MzNlYjVhNTJiY2M1MTg0NmFmYTU1ZmRjN2VjMGYxMTRlMWJjYjM1NDA5MDk5MDRiNjJkMGQzYjQmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.Hjbm-5_ALnK4WsPNni_AOi5Pt-fA60BV07nHmR0obuE)
+
+#### Test Case #4:
+
+```asm
+L.D F4, 90
+S.D F4, 90
+DIV.D F5, F4, F5
+ADD.D F6, F4, F5
+MUL.D F4, F4, F6
+DIV.D F6, F4, F4
+```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `5`     |
+| `FP Subtract`    | `7`     |
+| `FP Multiply`    | `20`    |
+| `FP Divide`      | `40`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `3`     |
+| `Store`          | `3`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `1`  |
+| `Store` | `1`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `1`  |
+| `Mul/Div`           | `1`  |
+
+![Test Case 4](https://private-user-images.githubusercontent.com/93436246/289311263-d994a7f5-0d5f-4f76-bc38-8002a54756d7.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTEiLCJleHAiOjE3MDIxNTQyNzcsIm5iZiI6MTcwMjE1Mzk3NywicGF0aCI6Ii85MzQzNjI0Ni8yODkzMTEyNjMtZDk5NGE3ZjUtMGQ1Zi00Zjc2LWJjMzgtODAwMmE1NDc1NmQ3LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFJV05KWUFYNENTVkVINTNBJTJGMjAyMzEyMDklMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjMxMjA5VDIwMzI1N1omWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTk2MTk4MzU3YmNjMTZjMDFkMjcyNzA4NzI4YTUzZDRmNjA4NGE2YjE2YjQ0ZDQ3NzlkNWM4NjAxOTE1YmYzNjImWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JmFjdG9yX2lkPTAma2V5X2lkPTAmcmVwb19pZD0wIn0.yUXh0k7EkPrB6mmyn2XW3ApSvgv81Hbuw-u45K0ejKU)
 
 ## Appendix
 
