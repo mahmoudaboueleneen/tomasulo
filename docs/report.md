@@ -165,6 +165,10 @@ Here are our assumptions:
 
 -   There are only one type of Adders and Multipliers supporting both integer and floating point instructions, recognizing them based on a control input.
 
+-   Only a store/load existing in store/load buffer can execute in the cycle after an executing store (for both load and store) and load (for a store only) writes its result.
+
+-   When a structural hazard occurs (all buffers or stations are busy), and instruction is issued in the cycle after one of the busy stations/buffers instruction writes its result.
+
 ### The Tomasulo Architecture
 
 To keep track of the real hardware architecture and to properly simulate it, we took as reference a couple of diagrams which can be found under this directory, entitled `architecture_1.png` and `architecture_2.png`. Both are taken from the German University in Cairo's Microprocessors Course for the year 2023, by Dr. Milad Ghantous.
@@ -335,7 +339,9 @@ S.D F4, 0
 SUBI R1, R1, 8
 BNEZ R1, LOOP
 
-it was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address.
+it was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address. It was tested with sizes of station and buffers once equal to 1 and once equal to 2
+
+
 
 ```
 
