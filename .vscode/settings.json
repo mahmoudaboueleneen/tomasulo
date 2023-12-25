@@ -1,15 +1,3 @@
 {
-    "cSpell.words": ["ADDI", "BNEZ", "hookform", "SUBI", "Tomasulo"],
-    "workbench.tree.indent": 17,
-    "editor.formatOnSave": true,
-    "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    },
-    "explorer.compactFolders": false,
-    "workbench.colorTheme": "Default Dark+",
-    "workbench.iconTheme": "material-icon-theme",
-    "typescript.updateImportsOnFileMove.enabled": "always"
+    "cSpell.words": ["ADDI", "BNEZ", "hookform", "SUBI", "Tomasulo"]
 }
