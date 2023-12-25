@@ -21,6 +21,7 @@ import TomasuloInstance from "../types/TomasuloInstance";
 import { mapToDataArray, mapToRegisterArray } from "../utils/jsonMapHandler";
 import StoreBufferToBeCleared from "../types/StoreBufferToBeCleared";
 import BNEZStationToBeCleared from "../types/BNEZStationToBeCleared";
+import ExecutionSummaryTable from "./ExecutionSummaryTable";
 
 const EXECUTION_TIME_THRESHOLD = 1000;
 class Tomasulo {
@@ -55,6 +56,16 @@ class Tomasulo {
 
     private registerFile: RegisterFile;
     private dataCache: DataCache;
+
+    private executionSummaryTable: ExecutionSummaryTable;
+    private currentIterationInCode: number | null;
+
+    getCurrentIterationInCode() {
+        return this.currentIterationInCode;
+    }
+    incrementCurrentIterationInCode() {
+        if (this.currentIterationInCode !== null) this.currentIterationInCode++;
+    }
 
     constructor(
         instructions: string[],
@@ -115,7 +126,7 @@ class Tomasulo {
         this.tagsToBeCleared = [];
 
         this.storeBufferToBeCleared = { tag: null, address: null, v: null };
-        this.BNEZStationToBeCleared = { tag: null };
+        this.BNEZStationToBeCleared = { tag: null, executionResult: null };
 
         this.FPAddLatency = FPAddLatency;
         this.FPSubtractLatency = FPSubtractLatency;
@@ -127,6 +138,10 @@ class Tomasulo {
 
         this.IntAddLatency = 1;
         this.BranchNotEqualZeroLatency = 1;
+
+        this.executionSummaryTable = new ExecutionSummaryTable();
+
+        this.currentIterationInCode = this.instructionCache.areInstructionsHavingLoop() ? 1 : null;
     }
 
     // TODO: Update the condition
@@ -173,7 +188,8 @@ class Tomasulo {
                 dataCache: mapToDataArray(this.dataCache),
                 instructionQueue: this.instructionQueue,
                 registerFile: mapToRegisterArray(this.registerFile),
-                currentClockCycle: this.currentClockCycle
+                currentClockCycle: this.currentClockCycle,
+                summaryTable: this.executionSummaryTable.getTable()
             })
         );
     }
@@ -199,7 +215,9 @@ class Tomasulo {
             this.storeBufferToBeCleared,
             this.dataCache,
             this.BNEZStationToBeCleared,
-            this.registerFile
+            this.executionSummaryTable,
+            this.currentClockCycle,
+            this
         ).handleWriting();
     }
 
@@ -216,7 +234,9 @@ class Tomasulo {
             this.finishedTagValuePairs,
             this.storeBufferToBeCleared,
             this.BNEZStationToBeCleared,
-            this.registerFile
+            this.registerFile,
+            this.executionSummaryTable,
+            this.currentClockCycle
         ).handleExecuting();
     }
 
@@ -239,12 +259,23 @@ class Tomasulo {
             this.LoadLatency,
             this.StoreLatency,
             this.IntAddLatency,
-            this.BranchNotEqualZeroLatency
+            this.BranchNotEqualZeroLatency,
+            this.tagsToBeCleared,
+            this.executionSummaryTable,
+            this.currentIterationInCode
         ).handleIssuing();
     }
 
     private fetch() {
         new FetchHandler(this.instructionCache, this.instructionQueue, this.canContinueFetching()).handleFetching();
+
+        clearFinishedBNEZInstructionIfExisting(this);
+
+        function clearFinishedBNEZInstructionIfExisting(tomasulo: Tomasulo) {
+            if (tomasulo.tagsToBeCleared.includes(tomasulo.BNEZStationToBeCleared.tag)) {
+                tomasulo.BNEZStationToBeCleared.tag = null;
+            }
+        }
     }
 
     private canContinueFetching() {

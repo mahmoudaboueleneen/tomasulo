@@ -12,6 +12,7 @@ import TagValuePair from "../../../interfaces/TagValuePair";
 import RegisterFile from "../../RegisterFile";
 import StoreBufferToBeCleared from "../../../types/StoreBufferToBeCleared";
 import BNEZStationToBeCleared from "../../../types/BNEZStationToBeCleared";
+import ExecutionSummaryTable from "../../ExecutionSummaryTable";
 
 class ExecuteHandler {
     private addSubReservationStations: AddSubReservationStation[];
@@ -29,6 +30,9 @@ class ExecuteHandler {
     private BNEZStationToBeCleared: BNEZStationToBeCleared;
     private registerFile: RegisterFile;
 
+    private executionSummaryTable: ExecutionSummaryTable;
+    private currentClockCycle: number;
+
     constructor(
         addSubReservationStations: AddSubReservationStation[],
         mulDivReservationStations: MulDivReservationStation[],
@@ -41,7 +45,9 @@ class ExecuteHandler {
         finishedTagValuePairs: TagValuePair[],
         storeBufferToBeCleared: StoreBufferToBeCleared,
         BNEZStationToBeCleared: BNEZStationToBeCleared,
-        registerFile: RegisterFile
+        registerFile: RegisterFile,
+        executionSummaryTable: ExecutionSummaryTable,
+        currentClockCycle: number
     ) {
         this.addSubReservationStations = addSubReservationStations;
         this.mulDivReservationStations = mulDivReservationStations;
@@ -57,6 +63,8 @@ class ExecuteHandler {
         this.storeBufferToBeCleared = storeBufferToBeCleared;
         this.BNEZStationToBeCleared = BNEZStationToBeCleared;
         this.registerFile = registerFile;
+        this.executionSummaryTable = executionSummaryTable;
+        this.currentClockCycle = currentClockCycle;
     }
 
     public handleExecuting() {
@@ -76,6 +84,9 @@ class ExecuteHandler {
         stations.forEach((station, index) => {
             const stationAluElement = AluElements[index];
             if (station.canExecute()) {
+                if (this.executionSummaryTable.isTagNotYetExecuting(station.tag)) {
+                    this.executionSummaryTable.addExecutionStartingCycle(station.tag, this.currentClockCycle);
+                }
                 station.decrementCyclesLeft();
                 stationAluElement.setBusy(1);
 
@@ -86,11 +97,14 @@ class ExecuteHandler {
                         if (computedValue === 1) {
                             this.registerFile.setPCRegisterValue(station.A!);
                         }
-                        copyFieldsFromSecondIntoFirst(this.BNEZStationToBeCleared, station);
+                        this.BNEZStationToBeCleared.tag = station.tag;
+                        this.BNEZStationToBeCleared.executionResult = computedValue;
                     } else {
                         this.addToFinishedTagValuePairs(station.tag, computedValue);
                     }
                     stationAluElement.setBusy(0);
+
+                    this.executionSummaryTable.addExecutionEndingCycle(station.tag, this.currentClockCycle);
                 }
             }
         });
@@ -103,12 +117,14 @@ class ExecuteHandler {
                 break;
             }
 
-            if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+            if (buffer.canExecute() && this.dataCache.isInstructionTagExecuting(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
                     const readValue = this.executeLoad(buffer);
                     this.addToFinishedTagValuePairs(buffer.tag, readValue);
+
+                    this.executionSummaryTable.addExecutionEndingCycle(buffer.tag, this.currentClockCycle);
                 }
             }
         }
@@ -118,11 +134,13 @@ class ExecuteHandler {
                 this.candidateStoreBuffer = buffer;
                 break;
             }
-            if (buffer.canExecute() && this.dataCache.isFilledWithTag(buffer.tag)) {
+            if (buffer.canExecute() && this.dataCache.isInstructionTagExecuting(buffer.tag)) {
                 buffer.decrementCyclesLeft();
 
                 if (buffer.isFinished()) {
                     copyFieldsFromSecondIntoFirst(this.storeBufferToBeCleared, buffer);
+
+                    this.executionSummaryTable.addExecutionEndingCycle(buffer.tag, this.currentClockCycle);
                 }
             }
         }
@@ -147,6 +165,13 @@ class ExecuteHandler {
         } else if (this.candidateLoadBuffer) {
             this.dataCache.setRunningBufferTag(loadTag!);
             this.candidateLoadBuffer.decrementCyclesLeft();
+        }
+
+        if (this.candidateStoreBuffer || this.candidateLoadBuffer) {
+            this.executionSummaryTable.addExecutionStartingCycle(
+                this.dataCache.getRunningBufferTag(),
+                this.currentClockCycle
+            );
         }
     }
 

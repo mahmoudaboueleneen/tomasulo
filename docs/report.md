@@ -10,24 +10,27 @@ This report assumes the reader already has knowledge and understanding of the te
 
 ## Table of Contents
 
--   [Architecture and Design](#architecture-and-design)
-    -   [The Tomasulo Algorithm](#the-tomasulo-algorithm)
-    -   [The Tomasulo Architecture](#the-tomasulo-architecture)
-    -   [Application Data Flow](#application-data-flow)
-    -   [OO Design](#oo-design)
-    -   [Technology Stack](#technology-stack)
--   [Implementation](#implementation)
-    -   [Overview](#overview)
-    -   [Backend](#backend)
-    -   [Frontend](#frontend)
-    -   [Code Structure](#code-structure)
-    -   [Workflow](#workflow)
--   [Testing](#testing)
-    -   [Running the Code](#running-the-code)
-    -   [Test Cases](#test-cases)
--   [Appendix](#appendix)
-    -   [The N-1 Bug](#the-n-1-bug)
-    -   [To Simulate or Not to Simulate](#to-simulate-or-not-to-simulate)
+-   [Report](#report)
+    -   [Prerequisites](#prerequisites)
+    -   [Table of Contents](#table-of-contents)
+    -   [Architecture and Design](#architecture-and-design)
+        -   [The Tomasulo Algorithm](#the-tomasulo-algorithm)
+        -   [The Tomasulo Architecture](#the-tomasulo-architecture)
+        -   [Application Data Flow](#application-data-flow)
+        -   [OO Design](#oo-design)
+        -   [Technology Stack](#technology-stack)
+    -   [Implementation](#implementation)
+        -   [Overview](#overview)
+        -   [Backend](#backend)
+        -   [Frontend](#frontend)
+        -   [Code Structure](#code-structure)
+        -   [Workflow](#workflow)
+    -   [Testing](#testing)
+        -   [Running the Code](#running-the-code)
+        -   [Test Cases](#test-cases)
+    -   [Appendix](#appendix)
+        -   [The N-1 Bug](#the-n-1-bug)
+        -   [To Simulate or Not to Simulate](#to-simulate-or-not-to-simulate)
 
 ## Architecture and Design
 
@@ -39,105 +42,113 @@ Due to the heavy dependencies of the features of this program on each other, and
 
 Here is our written draft of the algorithm. (Please note that this was built upon and further advanced and any other details not mentioned here have been taken into consideration in the actual implementation)
 
-```
-Clock Cycle:
-------------
--1. Read instructions and load them into Instruction Cache.
+#### Clock Cycle:
 
+-1: Read instructions and load them into Instruction Cache.
 
-0. Fetch instruction from Instruction Cache into Instruction Queue.
+0: Fetch instruction from Instruction Cache into Instruction Queue.
 
+1: (Issue & Read Operands)
 
-1. (Issue & Read Operands)
+Before Issuing:
 
-   Before Issuing:
-      Decode Instruction.
-      If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
-      && In case of Load there is no Store manipulating the same address in the Buffers
+-   Decode Instruction.
+-   If no Structural Hazard (availability of structure to carry out the operation/there's space in Buffer/Station)
+    && In case of Load there is no Store manipulating the same address in the Buffers (eliminating RAW hazard),
+    && In case of Store there is not either a Load or a Store manipulating the same address in the Buffers. (eliminating WAR and WAW hazards),
+    Otherwise; instruction won't be issued and will remain in the Instructions Queue.
 
-      Then,
-       - Issue Instruction to its Buffer/Station,
-       - Set the Buffer/Station to busy,
-       - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the
-         tag of the Buffer/Station that the Instruction has been added to,
-       - Add to a Hash Map ==> K: Tag of the Buffer/Station, V: Cycle Number that it's issued in.
+    Then, - Issue Instruction to its Buffer/Station, - Set the Buffer/Station to busy, - If not a Store, Update the Qi field in the Register file for the Instruction's Destination Register with the tag of the Buffer/Station that the Instruction has been added to, - Add to a Hash Map ==> Key: Tag of the Buffer/Station, Value: Cycle Number that it's issued in (tracking when each instruction was issued exactly).
 
-   If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers)
-      Check Operand Registers in the Register File:
-      If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk.
-      Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
+    If Load instruction, skip the next check (as effective addresses are assumed already given so no need to check registers):
 
+Check Operand Registers in the Register File:
 
-2. (Execute)
+-   If the Operand Registers are free (their Qi = 0) then copy the value to Vj/Vk. Else, copy the Buffer/Station tag responsible for this Operand from Qi in the Register File to Qj/Qk.
 
-   For each Station, if it has Qj and Qk both equal 0, Execute (Decrement Cycles Left).
-   For each Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
-   Each instruction keeps executing according to its required number of cycles to finish.
-   If it's a Store, wait for the value to be stored to be ready before Executing.
+2: (Execute)
 
-   We will use an array of finishedInstructions which we will add an Object {tag, value} of the finished instruction to,
-   to later in the next stage be used to select one instruction from (based on FIFO) to write to the bus.
-   Thus, this array will be sorted based on the clock cycle number that the instruction was issued in.
+-   For each Station, if it has Qj and Qk both equal 0, Execute(Decrement Cycles Left).
+-   For each Load or Store Buffer, if memory is not busy, Execute (Decrement Cycles Left and set memory to busy).
+-   Each instruction keeps executing according to its required number of cycles to finish. If it's a Store, wait for the value to be stored to be ready before Executing.
+-   We will use an array of finishedInstructions in which we will add an Object {tag, value} of the finished instruction to, to later in the next stage be used to select one instruction only to publish its value and tag to the Bus(based on FIFO) using the HashMap in the issue stage (storing the clock cycle in which each instruction was issued). Thus, this array will be sorted based on the clock cycle number that the instruction was issued in. So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions except if it's a store instruction we don't add it to the array as it won't publish anything to the bus, and excluding the BNEZ instruction also as it doesn't write anything to the Bus, it directly update the PC register value if it is successful.
 
-   So, if instruction is finished, compute the result and add the {tag, value} to array of Finished Instructions
-   except if it's a store instruction we don't add it to the array as it won't publish anything to the bus.
+3: (Write Result)
 
+-   If Finished Instructions Array is empty, Return.
 
-3. (Write Result)
+-   Remove an instruction {tag, value} from the Finished Instructions Array And Write that instruction's result to the Bus.
 
-   If Finished Instructions Array is empty,
-      Return.
+-   Find the station/buffer that has the same tag as that on the bus and clear it and unset the station/buffer busy status and for load/store unset the memory busy status as well.
 
-   Remove an instruction {tag, value} from the Finished Instructions Array
-   And Write that instruction's result to the Bus.
+-   For each Station:
+    If the Station has Qj equals the tag published on the bus
+    Set Qj to 0.
+    Set Vj to the value from the bus.
+    If the Station has Qk equals the tag published on the bus
+    Set Qk to 0.
+    Set Vk to the value from the bus.
 
-   Find the station/buffer that has the same tag as that on the bus and clear it and
-   unset the station/buffer busy status and for load/store unset the memory busy status as well.
+-   For each StoreBuffer:
+    If the StoreBuffer has Q equals the tag published on the bus
+    Set Q to 0.
+    Set V to the value from the bus.
 
-   For each Station
-      If the Station has Qj equals the tag published on the bus
-         Set Qj to 0.
-         Set Vj to the value from the bus.
-      If the Station has Qk equals the tag published on the bus
-         Set Qk to 0.
-         Set Vk to the value from the bus.
+-   For each Register in the RegisterFile:
+    If the Register's Qi equals the tag published on the bus
+    Set Qi to 0.
+    Set content to the value from the bus.
 
-   For each StoreBuffer
-      If the StoreBuffer has Q equals the tag published on the bus
-         Set Q to 0.
-         Set V to the value from the bus.
+    (Note: Load Buffers don't need updating as they only have effective address)
 
-   For each Register in the RegisterFile
-      If the Register's Qi equals the tag published on the bus
-         Set Qi to 0.
-         Set content to the value from the bus.
-
-   (Note: Load Buffers don't need updating as they only have effective address)
-
-=================================================================
-vars to track: clockCycleNumber, cyclesLeft (for each instruction)
-
-```
+### Assumptions
 
 We have also made a list of assumptions with regards to the algorithm, hardware architecture, instruction syntax, and more.
 
 Here are our assumptions:
 
--   For adding a label, the label must end with a ':' or ',' and when executing a branch instruction to jump to this label, the branch instruction should have the label without this last character. For example:
+-   All events are shown describing what occurs at the of the currently displayed clock cycle.
+
+-   The Tomasulo algorithm starts from clock cycle 0, having the first instruction fetched at the end of the cycle.
+
+-   Assuming the fetch, write result and the issue stage take one cycle for all instructions, where in the issue stage (the first half decoding occurs, and the second half stations, buffers and register file assignments occurs).
+
+-   Regarding the instructions syntax, for adding a label, the label must end with a colon (':'). When executing a branch instruction to jump to this label, the branch instruction should have the label without a colon (':'). For example:
 
          LOOP: L.D F1, 0
          BNEZ R1, LOOP
 
--   Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value
+-   Addresses for Load and Store Instructions are assumed already precomputed and the instruction is written with the address as an immediate value.
 
-         [THIS] L.D F2, 100
-         [NOT THIS] L.D F2, 32(R2)
+    So this:
+
+         L.D F2, 100
+
+    Not this:
+
+         L.D F2, 32(R2)
 
 -   In an instruction, fields following the operation field are separated from each other by a comma and a space.
 
          R2, R3
 
 -   If two instructions finish at the same time and want to write to the bus, we pick the one which came first. (FIFO)
+
+-   When issuing a BNEZ instruction in an Add/Sub station, we put the operand register (whose value we evaluate against 0), in Vj if it is not used by another instruction and in Qj if otherwise, and also we put the address of the referenced label in the A field of the station.
+
+-   As long as a BNEZ instruction is not done, we cannot fetch no more instructions, aka. a stall occurs (to avoid fetching the wrong instruction).
+
+-   No two stores or a load and a store referencing the same memory address can exist in the Buffers. One only must be issued to avoid any kind of memory related hazards.
+
+-   Multiple loads and stores can exist in the buffers at the same time as long as they are referencing different memory addresses, but only one load or store is allowed to execute in the memory at a time, no other loads or stores can execute concurrently.
+
+-   When it is time for picking which load of the Load buffers or store of the Store buffers to execute, we pick based on FIFO to ensure that no particular instruction is waiting for a long period, then the memory is marked as busy and other loads and stores must wait for it to finish.
+
+-   There are only one type of Adders and Multipliers supporting both integer and floating point instructions, recognizing them based on a control input.
+
+-   Only a store/load existing in store/load buffer can execute in the cycle after an executing store (for both load and store) and load (for a store only) writes its result.
+
+-   When a structural hazard occurs (all buffers or stations are busy), an instruction can be issued in the cycle after one of the busy stations/buffers writes its result.
 
 ### The Tomasulo Architecture
 
@@ -220,64 +231,66 @@ Our codebase is split into two main folders (excluding the docs folder and any o
 Here is our project's file tree with some omissions for simplification.
 
 ```
+
 .
 ├───client
-│   ├───sample_programs
-│   └───src
-│       ├───components
-│       │   ├───input
-|       |   │   └───  <----------------- Input components
-│       │   └───output
-|       |       └───  <----------------- Output components
-│       ├───constants
-│       ├───contexts
-│       ├───interfaces
-│       ├───schemas
-│       ├───types
-│       └───utils
+│ ├───sample_programs
+│ └───src
+│ ├───components
+│ │ ├───input
+| | │ └─── <----------------- Input components
+│ │ └───output
+| | └─── <----------------- Output components
+│ ├───constants
+│ ├───contexts
+│ ├───interfaces
+│ ├───schemas
+│ ├───types
+│ └───utils
 ├───docs
 └───server
-    └───src
-        ├───constants
-        ├───interfaces
-        ├───main <----------------- Main backend logic, containing all the classes
-        │   ├───arithmetic_units
-        │   │   ├───AluElement.ts
-        │   │   ├───FPAdder.ts
-        │   │   └───FPMultiplier.ts
-        │   ├───buffers
-        │   │   ├───Buffer.ts
-        │   │   ├───LoadBuffer.ts
-        │   │   └───StoreBuffer.ts
-        │   ├───caches
-        │   │   ├───DataCache.ts
-        │   │   └───InstructionCache.ts
-        │   ├───reservation_stations
-        │   │   ├───AddSubReservationStation.ts
-        │   │   ├───MulDivReservationStation.ts
-        │   │   └───ReservationStation.ts
-        │   └───tomasulo_stages <----------------- Main pipeline stages along with other minor helping stages
-        │       ├───clear
-        │       │   └───ClearHandler.ts
-        │       ├───execute
-        │       │   └───ExecuteHandler.ts
-        │       ├───fetch
-        │       │   └───FetchHandler.ts
-        │       ├───issue
-        │       │   ├───DecodeHandler.ts
-        │       │   └───IssueHandler.ts
-        │       ├───update
-        │       │   └───UpdateHandler.ts
-        │       ├───write
-        │       │   └───WriteHandler.ts
-        │       ├───CommonDataBus.ts
-        │       ├───InstructionQueue.ts
-        │       ├───RegisterFile.ts
-        │       └───Tomasulo.ts <----------------- Main class holding the main program loop
-        ├───types
-        │   └───enums
-        ├───utils
-        └───index.ts <----------------- Server file
+└───src
+├───constants
+├───interfaces
+├───main <----------------- Main backend logic, containing all the classes
+│ ├───arithmetic_units
+│ │ ├───AluElement.ts
+│ │ ├───FPAdder.ts
+│ │ └───FPMultiplier.ts
+│ ├───buffers
+│ │ ├───Buffer.ts
+│ │ ├───LoadBuffer.ts
+│ │ └───StoreBuffer.ts
+│ ├───caches
+│ │ ├───DataCache.ts
+│ │ └───InstructionCache.ts
+│ ├───reservation_stations
+│ │ ├───AddSubReservationStation.ts
+│ │ ├───MulDivReservationStation.ts
+│ │ └───ReservationStation.ts
+│ └───tomasulo_stages <----------------- Main pipeline stages along with other minor helping stages
+│ ├───clear
+│ │ └───ClearHandler.ts
+│ ├───execute
+│ │ └───ExecuteHandler.ts
+│ ├───fetch
+│ │ └───FetchHandler.ts
+│ ├───issue
+│ │ ├───DecodeHandler.ts
+│ │ └───IssueHandler.ts
+│ ├───update
+│ │ └───UpdateHandler.ts
+│ ├───write
+│ │ └───WriteHandler.ts
+│ ├───CommonDataBus.ts
+│ ├───InstructionQueue.ts
+│ ├───RegisterFile.ts
+│ └───Tomasulo.ts <----------------- Main class holding the main program loop
+├───types
+│ └───enums
+├───utils
+└───index.ts <----------------- Server file
+
 ```
 
 ### Workflow
@@ -298,10 +311,139 @@ This was enough for us initially when testing using the CLI. However, we later t
 
 ### Test Cases
 
+We tested the correctness of our codebase by running many test cases. The following are some of them.
+
+#### Test Case #1:
+
+It was a comprehensive test case covering every corner case, as it included loops, data hazards, structural hazards, hazards regarding having multiple loads and stores referencing the same memory address.
+
+```asm
+ADDI R1, R1, 16
+LOOP: L.D F4, 0
+MUL.D F4, F4, F2
+S.D F4, 0
+SUBI R1, R1, 8
+BNEZ R1, LOOP
 ```
-TODO:
-ADD THE TEST CASES
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `2`     |
+| `FP Subtract`    | `2`     |
+| `FP Multiply`    | `3`     |
+| `FP Divide`      | `3`     |
+| `Int Subtract`   | `1`     |
+| `Load`           | `2`     |
+| `Store`          | `2`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `2`  |
+| `Store` | `2`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `2`  |
+| `Mul/Div`           | `2`  |
+
+![Test Case 1](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_1.png?raw=true)
+
+#### Test Case #2:
+
+```asm
+ADDI R1, R1, 16
+MUL.D F4, F4, F2
+DIV.D F4, F5, F5
+S.D F4, 0
+SUBI R6, R5, 8
 ```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `3`     |
+| `FP Subtract`    | `3`     |
+| `FP Multiply`    | `10`    |
+| `FP Divide`      | `20`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `2`     |
+| `Store`          | `2`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `1`  |
+| `Store` | `1`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `1`  |
+| `Mul/Div`           | `1`  |
+
+![Test Case 2](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_2.png?raw=true)
+
+#### Test Case #3:
+
+```asm
+DIV.D F4, F5, F5
+DIV.D F4, F5, F5
+MUL.D F4, F4, F2
+ADD.D F4, F4, F4
+L.D F5, 100
+```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `3`     |
+| `FP Subtract`    | `5`     |
+| `FP Multiply`    | `8`     |
+| `FP Divide`      | `12`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `3`     |
+| `Store`          | `3`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `2`  |
+| `Store` | `2`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `2`  |
+| `Mul/Div`           | `2`  |
+
+![Test Case 3](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_3.png?raw=true)
+
+#### Test Case #4:
+
+```asm
+L.D F4, 90
+S.D F4, 90
+DIV.D F5, F4, F5
+ADD.D F6, F4, F5
+MUL.D F4, F4, F6
+DIV.D F6, F4, F4
+```
+
+| Instruction Type | Latency |
+| :--------------- | :------ |
+| `FP Add`         | `5`     |
+| `FP Subtract`    | `7`     |
+| `FP Multiply`    | `20`    |
+| `FP Divide`      | `40`    |
+| `Int Subtract`   | `1`     |
+| `Load`           | `3`     |
+| `Store`          | `3`     |
+
+| Buffer  | Size |
+| :------ | :--- |
+| `Load`  | `1`  |
+| `Store` | `1`  |
+
+| Reservation Station | Size |
+| :------------------ | :--- |
+| `Add/Sub`           | `1`  |
+| `Mul/Div`           | `1`  |
+
+![Test Case 4](https://github.com/mahmoudaboueleneen/resource-archive/blob/main/Screenshot_4.png?raw=true)
 
 ## Appendix
 

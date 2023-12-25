@@ -6,6 +6,7 @@ import AddSubReservationStation from "../main/reservation_stations/AddSubReserva
 import MulDivReservationStation from "../main/reservation_stations/MulDivReservationStation";
 import DataCacheCellInstance from "./DataCacheCellInstance";
 import RegisterFileCellInstance from "./RegisterFileCellInstance";
+import SummaryTableRecord from "./SummaryTableRecord";
 
 type TomasuloInstance = {
     addSubReservationStations: AddSubReservationStation[];
@@ -17,6 +18,7 @@ type TomasuloInstance = {
     instructionQueue: InstructionQueue;
     registerFile: RegisterFileCellInstance[];
     currentClockCycle: number;
+    summaryTable: SummaryTableRecord[];
 };
 
 export default TomasuloInstance;

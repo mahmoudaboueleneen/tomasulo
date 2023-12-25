@@ -189,6 +189,38 @@ const Output = () => {
                                 }))}
                             />
                         </Box>
+
+                        <Box sx={{ marginTop: "20px" }}>
+                            <Typography variant="h4">Summary Table</Typography>
+                            <ReusableTable
+                                columns={[
+                                    "Iteration #",
+                                    "Instruction Op",
+                                    "Instruction Dest",
+                                    "j",
+                                    "k",
+                                    "address",
+                                    "Issue",
+                                    "Execute",
+                                    "Write Result / Finished"
+                                ]}
+                                rows={currentTomasuloInstance.summaryTable.map((summaryRecord: any) => ({
+                                    "Iteration #": summaryRecord.iteration,
+                                    "Instruction Op": summaryRecord.instructionOperation,
+                                    "Instruction Dest": summaryRecord.instructionDestinationRegister,
+                                    j: summaryRecord.instructionFirstOperandRegister,
+                                    k: summaryRecord.instructionSecondOperand,
+                                    address: summaryRecord.loadOrStoreInstructionAddress,
+                                    Issue: summaryRecord.issuingCycle,
+                                    Execute: `${
+                                        summaryRecord.executionRangeCycles
+                                            ? summaryRecord.executionRangeCycles?.from + " ... "
+                                            : ""
+                                    } ${summaryRecord.executionRangeCycles?.to || ""}`,
+                                    "Write Result / Finished": summaryRecord.writeResultCycle
+                                }))}
+                            />
+                        </Box>
                     </Box>
 
                     <Box mb={2}>

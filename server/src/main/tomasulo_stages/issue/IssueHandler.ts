@@ -20,6 +20,7 @@ import {
     MulInstructions,
     SubImmediateInstructions
 } from "../../../constants/SupportedInstructions";
+import ExecutionSummaryTable from "../../ExecutionSummaryTable";
 
 class IssueHandler {
     private decodeHandler: DecodeHandler;
@@ -45,6 +46,11 @@ class IssueHandler {
     private IntAddLatency: number;
     private BranchNotEqualZeroLatency: number;
 
+    private tagsToBeCleared: Tag[];
+
+    private executionSummaryTable: ExecutionSummaryTable;
+    private currentIterationInCode: number | null;
+
     constructor(
         instructionCache: InstructionCache,
         instructionQueue: InstructionQueue,
@@ -63,7 +69,10 @@ class IssueHandler {
         LoadLatency: number,
         StoreLatency: number,
         IntAddLatency: number,
-        BranchNotEqualZeroLatency: number
+        BranchNotEqualZeroLatency: number,
+        tagsToBeCleared: Tag[],
+        executionSummaryTable: ExecutionSummaryTable,
+        currentIterationInCode: number | null
     ) {
         this.decodeHandler = new DecodeHandler(instructionCache);
         this.instructionQueue = instructionQueue;
@@ -85,6 +94,9 @@ class IssueHandler {
         this.StoreLatency = StoreLatency;
         this.IntAddLatency = IntAddLatency;
         this.BranchNotEqualZeroLatency = BranchNotEqualZeroLatency;
+        this.tagsToBeCleared = tagsToBeCleared;
+        this.executionSummaryTable = executionSummaryTable;
+        this.currentIterationInCode = currentIterationInCode;
     }
 
     public handleIssuing() {
@@ -132,6 +144,13 @@ class IssueHandler {
 
         const storeInstruction = this.instructionDecoded as StoreType;
 
+        if (
+            this.isAnyLoadIssuedForAddress(storeInstruction.Address) ||
+            this.isAnyStoreIssuedForAddress(storeInstruction.Address)
+        ) {
+            return;
+        }
+
         freeBuffer.loadInstructionIntoBuffer(storeInstruction.Address);
 
         freeBuffer.setCyclesLeft(this.StoreLatency);
@@ -139,6 +158,18 @@ class IssueHandler {
         this.handleSettingVOrQInFreeSpot(freeBuffer, "v", "q", storeInstruction.Src);
 
         this.instructionQueue.dequeue();
+
+        this.recordIssuingStoreInstructionInSummaryTable(storeInstruction, freeBuffer);
+    }
+    private recordIssuingStoreInstructionInSummaryTable(storeInstruction: StoreType, freeBuffer: StoreBuffer) {
+        this.executionSummaryTable.addNewIssuedInstruction({
+            iteration: this.currentIterationInCode,
+            operation: storeInstruction.Op as InstructionOperation,
+            tag: freeBuffer.tag,
+            issuingClockCycle: this.currentClockCycle,
+            firstOperandRegister: storeInstruction.Src,
+            address: storeInstruction.Address
+        });
     }
 
     private handleLoadInstruction() {
@@ -162,10 +193,29 @@ class IssueHandler {
         this.tagTimeMap.set(freeBuffer.tag, this.currentClockCycle);
 
         this.instructionQueue.dequeue();
+
+        this.recordIssuingLoadInstructionInSummaryTable(loadInstruction, freeBuffer);
+    }
+    private recordIssuingLoadInstructionInSummaryTable(loadInstruction: LoadType, freeBuffer: LoadBuffer) {
+        this.executionSummaryTable.addNewIssuedInstruction({
+            iteration: this.currentIterationInCode,
+            operation: loadInstruction.Op as InstructionOperation,
+            tag: freeBuffer.tag,
+            issuingClockCycle: this.currentClockCycle,
+            destinationRegister: loadInstruction.Dest,
+            address: loadInstruction.Address
+        });
     }
 
     private isAnyStoreIssuedForAddress(address: number) {
-        return this.storeBuffers.some((buffer) => buffer.address === address && buffer.busy === 1);
+        const existingStoreTag = this.storeBuffers.find(
+            (buffer) => buffer.address === address && buffer.busy === 1
+        )?.tag;
+        return existingStoreTag && !this.tagsToBeCleared.includes(existingStoreTag);
+    }
+    private isAnyLoadIssuedForAddress(address: number) {
+        const existingLoadTag = this.loadBuffers.find((buffer) => buffer.address === address && buffer.busy === 1)?.tag;
+        return existingLoadTag && !this.tagsToBeCleared.includes(existingLoadTag);
     }
 
     private handleMulDivInstruction() {
@@ -187,6 +237,8 @@ class IssueHandler {
         this.registerFile.writeTag(mulDivInstruction.Dest, freeStation.tag);
 
         this.instructionQueue.dequeue();
+
+        this.recordIssuingRTypeInstructionInSummaryTable(mulDivInstruction, freeStation, mulDivInstruction);
 
         function setCyclesLeftForStation(issueHandler: IssueHandler, freeStation: MulDivReservationStation) {
             if (MulInstructions.has(mulDivInstruction.Op)) {
@@ -214,6 +266,8 @@ class IssueHandler {
             this.handleSettingVOrQInFreeSpot(freeStation, "vj", "qj", branchInstruction.Operand);
             freeStation.A = branchInstruction.BranchAddress;
             this.instructionQueue.dequeue();
+
+            this.recordIssuingBNEZInstructionInSummaryTable(branchInstruction, freeStation);
             return;
         }
 
@@ -225,6 +279,8 @@ class IssueHandler {
             freeStation.vk = ImmediateInstruction.Immediate;
             this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
             this.instructionQueue.dequeue();
+
+            this.recordIssuingITypeInstructionInSummaryTable(ImmediateInstruction, freeStation, ImmediateInstruction);
             return;
         }
 
@@ -237,6 +293,8 @@ class IssueHandler {
         this.registerFile.writeTag(addSubInstruction.Dest, freeStation.tag);
 
         this.instructionQueue.dequeue();
+
+        this.recordIssuingRTypeInstructionInSummaryTable(RInstruction, freeStation, RInstruction);
 
         function setCyclesLeftForStation(issueHandler: IssueHandler, freeStation: AddSubReservationStation) {
             if (FPAddInstructions.has(issueHandler.instructionDecoded!.Op)) {
@@ -253,6 +311,52 @@ class IssueHandler {
 
             issueHandler.tagTimeMap.set(freeStation.tag, issueHandler.currentClockCycle);
         }
+    }
+
+    private recordIssuingBNEZInstructionInSummaryTable(
+        branchInstruction: BranchType,
+        freeStation: AddSubReservationStation
+    ) {
+        this.executionSummaryTable.addNewIssuedInstruction({
+            iteration: this.currentIterationInCode,
+            operation: branchInstruction.Op as InstructionOperation,
+            tag: freeStation.tag,
+            issuingClockCycle: this.currentClockCycle,
+            firstOperandRegister: branchInstruction.Operand,
+            address: branchInstruction.BranchAddress
+        });
+    }
+
+    private recordIssuingITypeInstructionInSummaryTable(
+        ImmediateInstruction: IType,
+        freeStation: AddSubReservationStation,
+        addSubInstruction: IType
+    ) {
+        this.executionSummaryTable.addNewIssuedInstruction({
+            iteration: this.currentIterationInCode,
+            operation: ImmediateInstruction.Op as InstructionOperation,
+            tag: freeStation.tag,
+            issuingClockCycle: this.currentClockCycle,
+            destinationRegister: addSubInstruction.Dest,
+            firstOperandRegister: ImmediateInstruction.Src,
+            secondOperand: ImmediateInstruction.Immediate
+        });
+    }
+
+    private recordIssuingRTypeInstructionInSummaryTable(
+        RInstruction: RType,
+        freeStation: AddSubReservationStation | MulDivReservationStation,
+        addSubInstruction: RType
+    ) {
+        this.executionSummaryTable.addNewIssuedInstruction({
+            iteration: this.currentIterationInCode,
+            operation: RInstruction.Op as InstructionOperation,
+            tag: freeStation.tag,
+            issuingClockCycle: this.currentClockCycle,
+            destinationRegister: addSubInstruction.Dest,
+            firstOperandRegister: RInstruction.Src1,
+            secondOperand: RInstruction.Src2
+        });
     }
 
     private handleSettingVOrQInFreeSpot(

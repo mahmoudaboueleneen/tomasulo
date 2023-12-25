@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { Button, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
+import { Button, Container, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
@@ -29,7 +29,7 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
 
     useEffect(() => {
         const handleKeyUp = (event: KeyboardEvent) => {
-            if(event.key === "Enter") onSubmit();
+            if (event.key === "Enter") onSubmit();
         };
         window.addEventListener("keyup", handleKeyUp);
         return () => {
@@ -38,7 +38,7 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
     }, []);
 
     return (
-        <div>
+        <Container>
             <Box
                 component="form"
                 sx={{
@@ -46,11 +46,11 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                 }}
                 onSubmit={context.formActions?.handleSubmit(onSubmit)}
             >
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Instructions
                     </Typography>
-                    <div>
+                    <Box>
                         <FormControl component="fieldset">
                             <FormLabel component="legend">Choose an option</FormLabel>
                             <RadioGroup aria-label="options" value={context.instructionsFormat} onChange={handleChange}>
@@ -62,17 +62,17 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                                 />
                             </RadioGroup>
                         </FormControl>
-                        <div>{context.instructionsFormat === "string" ? <TextAreaInput /> : <FileInput />}</div>
+                        <Box>{context.instructionsFormat === "string" ? <TextAreaInput /> : <FileInput />}</Box>
                         {context.instructionsError && <p style={{ color: "red" }}>{context.instructionsError}</p>}
-                    </div>
-                </div>
+                    </Box>
+                </Box>
 
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Instruction Latencies
                     </Typography>
 
-                    <div>
+                    <Box>
                         <Typography variant="h5" component="div" gutterBottom>
                             FP Instruction Latencies
                         </Typography>
@@ -100,9 +100,9 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                             value={context.instructionLatencies.FPDivideLatency}
                             label="FP Divide"
                         />
-                    </div>
+                    </Box>
 
-                    <div>
+                    <Box>
                         <Typography variant="h5" component="div" gutterBottom>
                             Integer Instruction Latencies
                         </Typography>
@@ -112,9 +112,9 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                             value={context.instructionLatencies.IntSubtractLatency}
                             label="Int Subtract"
                         />
-                    </div>
+                    </Box>
 
-                    <div>
+                    <Box>
                         <Typography variant="h5" component="div" gutterBottom>
                             Memory Instruction Latencies
                         </Typography>
@@ -130,10 +130,10 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                             value={context.instructionLatencies.StoreLatency}
                             label="Store"
                         />
-                    </div>
-                </div>
+                    </Box>
+                </Box>
 
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Buffer sizes
                     </Typography>
@@ -149,9 +149,9 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                         value={context.bufferSizes.StoreBufferSize}
                         label="Store Buffer"
                     />
-                </div>
+                </Box>
 
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Reservation Station sizes
                     </Typography>
@@ -167,29 +167,29 @@ const InputForm: React.FC<Props> = ({ setStage }) => {
                         value={context.reservationStationsSizes.MultiplyDivideReservationStationSize}
                         label="Multiply/Divide Reservation Station"
                     />
-                </div>
+                </Box>
 
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Preload Registers
                     </Typography>
 
                     <RegisterPreloadInput />
-                </div>
+                </Box>
 
-                <div style={{ marginBottom: 40 }}>
+                <Box style={{ marginBottom: 40 }}>
                     <Typography variant="h4" component="div" gutterBottom>
                         Preload Memory
                     </Typography>
 
                     <MemoryPreloadInput />
-                </div>
+                </Box>
 
                 <Button type="submit" variant="contained">
                     Get results
                 </Button>
             </Box>
-        </div>
+        </Container>
     );
 };
 

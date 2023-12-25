@@ -1,3 +1,4 @@
+import { BranchInstructions } from "../../constants/SupportedInstructions";
 import RegisterInfo from "../../interfaces/RegisterInfo";
 
 class InstructionCache {
@@ -37,6 +38,21 @@ class InstructionCache {
                 }
             }
         });
+    }
+
+    areInstructionsHavingLoop(): boolean {
+        for (const [label, labelAddress] of this.codeLabelAddressPairs) {
+            for (let i = 0; i < this.instructions.length; i++) {
+                const instruction = this.instructions[i];
+                if (instruction.includes(label) && BranchInstructions.has(instruction.split(" ")[0])) {
+                    const bnezAddress = i;
+                    if (labelAddress < bnezAddress) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public getInstructionAddress(label: string): number {
